@@ -1,0 +1,661 @@
+"use strict";
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const fmt = (x, d = 2) => (x === null || x === undefined || Number.isNaN(x) ? "—" : Number(x).toFixed(d));
+const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const api = async (path, opts = {}) => {
+  const r = await fetch(path, { headers: { "Content-Type": "application/json" }, ...opts });
+  const j = await r.json();
+  if (!r.ok) throw new Error(j.error || r.statusText);
+  return j;
+};
+const vclass = (v) => "v-" + String(v).split(" ")[0];
+
+let STATUS = null;
+let LAST_CLAIM = null;
+let LAST_PARAMS = {};
+const charts = {};
+
+/* ------------------------------------------------------------------ theme + tabs */
+(function theme() {
+  let saved = null;
+  try { saved = localStorage.getItem("rf-theme"); } catch (e) {}
+  if (saved) document.documentElement.dataset.theme = saved;
+  $("#theme-btn").onclick = () => {
+    const dark = document.documentElement.dataset.theme
+      ? document.documentElement.dataset.theme === "dark"
+      : matchMedia("(prefers-color-scheme: dark)").matches;
+    const next = dark ? "light" : "dark";
+    document.documentElement.dataset.theme = next;
+    try { localStorage.setItem("rf-theme", next); } catch (e) {}
+    redrawCharts();
+  };
+})();
+
+function showTab(name) {
+  $$("#tabs button").forEach((b) => b.classList.toggle("active", b.dataset.tab === name));
+  $$("section.tab").forEach((s) => s.classList.toggle("active", s.id === "tab-" + name));
+  if (location.hash !== "#" + name) history.replaceState(null, "", "#" + name);
+  if (name === "corpus") loadCorpus();
+  if (name === "bench") loadLastBench();
+  if (name === "eval") loadEval();
+  if (name === "compare") { drawWeightChart(); loadCmpBench(); }
+}
+$$("#tabs button").forEach((b) => (b.onclick = () => showTab(b.dataset.tab)));
+
+/* ------------------------------------------------------------------ status */
+async function pollStatus() {
+  try {
+    STATUS = await api("/api/status");
+    $("#st-dot").className = "dot " + (STATUS.ingesting ? "busy" : "ok");
+    $("#st-text").textContent = `${STATUS.corpus_size.toLocaleString()} articles · ${STATUS.feeds} feeds · ${STATUS.max_threads} OpenMP threads` +
+      (STATUS.ingesting ? " · ingesting…" : "");
+    $("#live-size").textContent = `${STATUS.corpus_size.toLocaleString()} articles now (refreshed every ${STATUS.refresh_minutes} min); synthetic up to 500K for scaling`;
+  } catch (e) {
+    $("#st-dot").className = "dot";
+    $("#st-text").textContent = "server offline";
+  }
+}
+
+/* ------------------------------------------------------------------ verify */
+const PARAM_META = [
+  ["M", "M: retrieve-wide pool", "number"], ["K", "K: clusters kept", "number"],
+  ["tau", "τ: duplicate threshold", "number", 0.01], ["lam", "λ: independence weight", "number", 0.05],
+  ["theta", "θ: evidence sufficiency", "number", 0.05], ["delta", "δ: disagreement band", "number", 0.01],
+  ["min_rel", "relevance floor (cos)", "number", 0.01], ["threads", "threads (0 = auto)", "number"],
+  ["schedule", "OpenMP schedule", "select"],
+];
+
+function buildParams(defaults) {
+  $("#param-grid").innerHTML = PARAM_META.map(([k, label, type, step]) => {
+    if (type === "select")
+      return `<label class="field"><span>${label}</span><select data-p="${k}">${["static", "dynamic", "guided"].map((o) => `<option ${o === defaults[k] ? "selected" : ""}>${o}</option>`).join("")}</select></label>`;
+    return `<label class="field"><span>${label}</span><input type="number" data-p="${k}" value="${defaults[k]}" ${step ? `step="${step}"` : ""}></label>`;
+  }).join("");
+}
+const readParams = () => Object.fromEntries($$("[data-p]").map((el) => [el.dataset.p, el.value]));
+
+async function loadExamples() {
+  const fixed = [
+    "Russian strike on a Ukrainian train station killed at least 13 people",
+    "The Earth is flat",
+    "Scientists confirmed that global warming is accelerating",
+  ];
+  let live = [];
+  try {
+    const c = await api("/api/corpus");
+    const seen = new Set();
+    live = c.recent.filter((r) => !seen.has(r.domain) && seen.add(r.domain)).slice(0, 4).map((r) => r.title);
+  } catch (e) {}
+  $("#examples").innerHTML = `<span class="tiny muted" style="align-self:center">Try:</span>` +
+    [...live, ...fixed].map((t) => `<button class="chip" title="${esc(t)}">${esc(t)}</button>`).join("");
+  $$("#examples .chip").forEach((b) => (b.onclick = () => { $("#claim").value = b.title; runVerify(); }));
+}
+
+async function runVerify(extra = {}) {
+  const claim = $("#claim").value.trim();
+  if (!claim) return;
+  const btn = $("#verify-btn");
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spinner"></span> Verifying`;
+  LAST_CLAIM = claim;
+  LAST_PARAMS = { ...readParams(), ...extra };
+  try {
+    const r = await api("/api/verify", { method: "POST", body: JSON.stringify({ claim, params: LAST_PARAMS }) });
+    renderVerify(r);
+  } catch (e) {
+    $("#verify-out").innerHTML = `<div class="err">${esc(e.message)}</div>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Verify";
+  }
+}
+$("#verify-btn").onclick = () => runVerify();
+$("#claim").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); runVerify(); } });
+
+function probsBar(pr) {
+  return `<div class="probs" title="SUPPORT ${fmt(pr.SUPPORT)} · NEUTRAL ${fmt(pr.NEUTRAL)} · CONTRADICT ${fmt(pr.CONTRADICT)}">
+    <i style="width:${pr.SUPPORT * 100}%;background:var(--sup)"></i><i style="width:${pr.NEUTRAL * 100}%;background:var(--neu-soft)"></i><i style="width:${pr.CONTRADICT * 100}%;background:var(--con)"></i></div>`;
+}
+
+function renderVerify(r) {
+  const p = r.params, a = r.aggregate, rw = r.retrieve_wide, par = r.parallel, t = r.timings_ms;
+  const needle = ((r.S + 1) / 2) * 100;
+  const sim = r.syndication_test;
+  const ablOrder = ["independence_log", "one_vote", "naive_count", "filter_off"];
+
+  const stages = [
+    ["Embed claim", "BGE-small · 384-d", t.embed_claim, false],
+    ["OpenMP exact scan", `top-M · ${par.threads}T${par.threads_auto ? " (auto)" : ""} ${par.schedule}`, t.retrieval_kernel, true],
+    ["Cluster duplicates", `τ = ${p.tau} → top-${p.K}`, t.clustering, true],
+    ["NLI per cluster", "SUPPORT / CONTRADICT / NEUTRAL", t.nli, false],
+    ["Weighted aggregation", `w = 1 + ${p.lam}·log₂n`, t.aggregation, true],
+  ];
+
+  $("#verify-out").innerHTML = `
+  ${sim ? `<div class="callout warn" style="margin-bottom:16px"><b>Syndication stress test active:</b> article #${sim.article_id} has been republished ×${sim.copies} under simulated outlets (<code>wire-copy-N.simulated</code>), for this query only. Nothing is written to the corpus. Compare the verdict table below. <button class="btn sm" id="clear-sim" style="margin-left:8px">Clear simulation</button></div>` : ""}
+  <div class="verdict-wrap">
+    <div class="verdict ${vclass(r.verdict)}">
+      <div class="eyebrow" style="color:inherit;opacity:.8">RealFact verdict</div>
+      <div class="v-label">${esc(r.verdict)}</div>
+      <div class="claim-echo">“${esc(r.claim)}”</div>
+      <div class="meter"><div class="bar"><div class="needle" style="left:${needle}%"></div></div>
+        <div class="labels"><span>contradicted −1</span><span>S = ${fmt(r.S)}</span><span>+1 supported</span></div></div>
+      <dl class="kv" style="margin-top:14px;color:var(--ink)">
+        <dt>D (support share)</dt><dd>${r.D === null ? "— (no polar evidence)" : fmt(r.D)}</dd>
+        <dt>Polar mass Σw·p</dt><dd>${fmt(a.polar_mass)} ${a.polar_mass < p.theta ? "&lt;" : "≥"} θ = ${p.theta}</dd>
+        <dt>Disagreement band</dt><dd>${p.delta} &lt; D &lt; ${fmt(1 - p.delta)}</dd>
+        <dt>Independent clusters</dt><dd>${r.evidence.length}</dd>
+      </dl>
+    </div>
+    <div class="stack">
+      <div class="grid g3">
+        <div class="card stat"><div class="n">${rw.corpus_size.toLocaleString()}</div><div class="l">articles scanned exactly (N)</div></div>
+        <div class="card stat"><div class="n">${rw.M_returned.toLocaleString()}</div><div class="l">top-M returned · ${rw.above_relevance_floor} above relevance floor ${p.min_rel}</div></div>
+        <div class="card stat novel"><div class="n">${rw.clusters_kept} <span class="small muted">from ${rw.articles_in_kept_clusters}</span></div><div class="l">independent clusters from articles · ${rw.duplicates_collapsed} copies collapsed</div></div>
+      </div>
+      <div class="card">
+        <div class="eyebrow" style="margin-bottom:10px">Pipeline stages for this claim (ms) · blue = novel stage</div>
+        <div class="pipe">${stages.map(([nm, sub, ms, nov], i) => `${i ? '<span class="arrow">→</span>' : ""}<div class="stage ${nov ? "novel" : ""}">${nov ? '<span class="tag">novel</span>' : ""}<div class="nm">${nm}</div><div class="tiny muted">${sub}</div><div class="t">${fmt(ms, ms < 10 ? 3 : 1)} ms</div></div>`).join("")}</div>
+        <div class="small" style="margin-top:12px;display:flex;gap:18px;flex-wrap:wrap">
+          <span>Scan: OpenMP <b class="mono">${fmt(par.kernel_ms, 3)} ms</b> vs serial build <b class="mono">${fmt(par.serial_ms, 3)} ms</b> (×${fmt(par.speedup)} for this one query)</span>
+          <span class="${par.ids_match_serial ? "yes" : "no"}">${par.ids_match_serial ? "✓ IDs identical to serial build" : "✗ IDs differ from serial"}</span>
+          <span class="muted">Retrieve-then-truncate would have kept only <b>${rw.truncate_then_cluster_independent}</b> independent stories in K = ${p.K} (${rw.truncate_then_cluster_slots_wasted} slots wasted)</span>
+        </div>
+        ${rw.corpus_size < 50000 ? `<p class="tiny muted" style="margin:8px 0 0">With a live corpus this small, OpenMP start-up costs as much as the scan itself. See the Parallel benchmark tab for 10K–500K corpora.</p>` : ""}
+      </div>
+    </div>
+  </div>
+
+  <div class="section-head"><h2>Existing approaches vs RealFact on this same evidence</h2><p>Same retrieval and NLI; only the counting rule changes</p></div>
+  <div class="card tbl-wrap"><table>
+    <thead><tr><th>Aggregation rule</th><th>Verdict</th><th class="num">S</th><th class="num">D</th><th class="num">Σ<sub>σ≠0</sub> w·p</th><th class="num">votes Σw</th></tr></thead>
+    <tbody>${ablOrder.map((k) => { const m = r.ablations[k]; return `<tr class="${k === "independence_log" ? "ours" : ""}"><td>${esc(m.label)}</td><td><span class="vchip ${vclass(m.verdict)}">${esc(m.verdict)}</span></td><td class="num">${fmt(m.S)}</td><td class="num">${fmt(m.D)}</td><td class="num">${fmt(m.polar_mass)}</td><td class="num">${fmt(m.n_votes, 1)}</td></tr>`; }).join("")}</tbody>
+  </table>
+  <p class="tiny muted" style="margin:8px 0 0">“Filter off” is the usual retrieve-then-classify setup: raw top-K articles, one vote each. “Naive counting” gives every syndicated copy a vote. With no syndication in the pool all rules agree, which is the expected control result (methodology §III-D). Press “Simulate syndication” on a card to see them diverge.</p></div>
+
+  <div class="section-head"><h2>Cited evidence</h2><p>One NLI call per independent cluster, on its highest-scoring representative</p></div>
+  <div id="ev-list">${r.evidence.length ? r.evidence.map((e) => evidenceCard(e, p)).join("") : `<div class="card empty">No article cleared the relevance floor (cos ≥ ${p.min_rel}). The corpus has no evidence for this claim, so the verdict is <b>Unverified</b> rather than a guess.</div>`}</div>`;
+
+  $$(".syn-btn").forEach((b) => (b.onclick = () => runVerify({ syndicate_id: +b.dataset.id, syndicate_n: 10 })));
+  $$(".mem-btn").forEach((b) => (b.onclick = () => { const m = b.closest(".ev").querySelector(".members"); m.hidden = !m.hidden; }));
+  const cs = $("#clear-sim");
+  if (cs) cs.onclick = () => runVerify();
+}
+
+function evidenceCard(e, p) {
+  const r = e.rep;
+  const date = r.published_at ? new Date(r.published_at).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "undated";
+  const copies = Math.min(e.n_c, 24);
+  return `<div class="ev">
+    <div class="ev-head">
+      <div class="ev-rank">#${e.rank}</div>
+      <div style="min-width:0">
+        <div class="ev-title"><a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.title)}</a></div>
+        <div class="ev-meta"><span>${esc(r.domain)}</span><span>${esc(date)}</span><span class="mono">cos ${fmt(r.score, 3)}</span>${r.simulated ? '<span class="sim-tag">SIMULATED COPY</span>' : ""}</div>
+        ${r.summary ? `<div class="ev-sum">${esc(r.summary.slice(0, 320))}${r.summary.length > 320 ? "…" : ""}</div>` : ""}
+      </div>
+      <div class="ev-right"><span class="stance s-${e.label}">${e.label}</span><div class="tiny muted" style="margin-top:4px">p = ${fmt(e.p)}</div>${probsBar(e.probs)}</div>
+    </div>
+    <div class="ev-foot">
+      <span title="cluster size n_c"><span class="copies">${Array.from({ length: copies }, (_, i) => `<i class="${i === 0 ? "rep" : ""}"></i>`).join("")}</span> n<sub>c</sub> = ${e.n_c}${e.domains.length > 1 ? ` across ${e.domains.length} outlets` : ""}</span>
+      <span class="w">w<sub>c</sub> = 1 + ${p.lam}·log₂${e.n_c} = ${fmt(e.w_log)}</span>
+      <span class="w muted">naive w = ${e.n_c}</span>
+      <span class="w">contribution w·p·σ = ${e.contribution >= 0 ? "+" : ""}${fmt(e.contribution)}</span>
+      <span style="margin-left:auto;display:flex;gap:6px">
+        ${e.n_c > 1 ? `<button class="btn sm mem-btn">Show ${e.n_c} copies</button>` : ""}
+        ${r.simulated ? "" : `<button class="btn sm syn-btn" data-id="${r.id}" title="Republish this article ×10 under simulated outlets and re-run the pipeline">Simulate syndication ×10</button>`}
+      </span>
+    </div>
+    ${e.n_c > 1 ? `<ul class="members clean" hidden>${e.members.map((m) => `<li><span class="mono tiny">${fmt(m.score, 3)}</span> · ${esc(m.domain)} ${m.simulated ? '<span class="sim-tag">SIM</span>' : ""} · <a href="${esc(m.url)}" target="_blank" rel="noopener">${esc(m.title)}</a></li>`).join("")}</ul>` : ""}
+  </div>`;
+}
+
+/* ------------------------------------------------------------------ survey lessons */
+const LESSONS = [
+  ["Fact-checking is a pipeline, not one classifier",
+    "The survey splits automated fact-checking into claim detection, evidence retrieval, verdict prediction and justification production, and treats verification as reasoning over retrieved evidence.",
+    "RealFact implements retrieval and verdict prediction as separate, separately timed stages. Our verdicts come from evidence, not from the writing style of the claim.", "Verify → pipeline strip"],
+  ["Claim-only models cannot really verify",
+    "Datasets such as LIAR offer no evidence documents, so models trained on them learn from the claim's surface and metadata. The survey distinguishes these from evidence-based settings.",
+    "Every verdict is computed from retrieved articles and lists them. If nothing relevant is retrieved, the system answers Unverified instead of guessing.", "Verify → Cited evidence"],
+  ["Real evidence conflicts and sources are not equally trustworthy",
+    "The survey names it an open problem that most systems assume a single, trustworthy evidence source and do not handle contradictory or unreliable evidence.",
+    "Conflicting Evidence is a first-class verdict, and copies of one report are discounted with w = 1 + λ·log₂n so a syndicated story can't pose as many independent witnesses.", "Verify → verdict table / Simulate syndication"],
+  ["Fine-grained truth ratings are meta-ratings",
+    "Labels like “half-true” usually rate a composite claim whose parts differ in truth, rather than marking one intermediate truth value.",
+    "LIAR's middle band is reported separately and read as closer to our Conflicting verdict than to Neutral (methodology §I-B).", "Evaluation → LIAR breakdown"],
+  ["Insufficient evidence is a valid outcome",
+    "Following FEVER's NOT ENOUGH INFO class, the survey treats “cannot be verified from the evidence” as a label in its own right, not a failure.",
+    "Unverified is triggered by an explicit sufficiency threshold θ on polar evidence mass, and a relevance floor stops off-topic text from counting as evidence.", "Verify → θ in the verdict card"],
+  ["Datasets have artefacts and leakage",
+    "The survey warns that artificially written claims (e.g. FEVER) let models exploit claim-only cues, and that evidence gathered from the web can leak the answer (such as the claim's own source or fact-check).",
+    "We report on FEVER, LIAR and FakeNewsNet side by side, and the engine applies a leakage mask so a claim can't retrieve its own article.", "Methodology → Threats; engine exclude mask"],
+  ["Fact-checking needs current evidence",
+    "Most benchmarks are built on static snapshots like a Wikipedia dump, while real claims are about recent events.",
+    "Evidence comes from permitted live RSS feeds of 25+ outlets, re-ingested on a timer. Each article keeps its timestamp and source domain.", "Live corpus tab"],
+  ["Systems are judged on accuracy alone",
+    "The surveyed systems and benchmarks report accuracy, F1 and evidence recall. Latency and multicore scalability are rarely discussed.",
+    "We add a second, independently falsifiable axis: an OpenMP retrieval kernel measured across schedules × threads × corpus size, checked bit-for-bit against serial.", "Parallel benchmark tab"],
+];
+$("#lessons").innerHTML = LESSONS.map(([h, from, to, where]) => `
+  <div class="lesson">
+    <div class="from"><div class="eyebrow">Survey</div><h4>${h}</h4><p>${from}</p></div>
+    <div class="mid">→</div>
+    <div class="to"><div class="eyebrow" style="color:var(--accent)">RealFact</div><p>${to}</p><div class="where">See it: ${where}</div></div>
+  </div>`).join("");
+
+/* ------------------------------------------------------------------ diagrams */
+function retrieveDiagram() {
+  const pal = ["var(--con)", "var(--sup)", "var(--conf)", "var(--accent)", "#8e5bd3", "#2aa3a3", "#c4572b", "#6b8e23", "#d14d8a", "#5a6acf"];
+  const box = (x, y, c, op = 1) => `<rect x="${x}" y="${y}" width="26" height="20" rx="4" fill="${c}" opacity="${op}"/>`;
+  const row = (y, colors, ops) => colors.map((c, i) => box(80 + i * 30, y, c, ops ? ops[i] : 1)).join("");
+  const exist = ["var(--con)", "var(--con)", "var(--con)", "var(--con)", "var(--con)", "var(--con)", "var(--con)", "var(--sup)", "var(--conf)", "var(--accent)"];
+  const existAfter = ["var(--con)", "var(--sup)", "var(--conf)", "var(--accent)", "var(--line)", "var(--line)", "var(--line)", "var(--line)", "var(--line)", "var(--line)"];
+  return `<svg viewBox="0 0 400 150" role="img" aria-label="Truncate-then-cluster vs retrieve-wide">
+    <text x="0" y="22" font-size="11" fill="var(--ink-2)">Existing</text><text x="0" y="35" font-size="9" fill="var(--ink-3)">top-K</text>
+    ${row(12, exist)}
+    <text x="0" y="62" font-size="9" fill="var(--ink-3)">then cluster</text>${row(50, existAfter)}
+    <text x="385" y="64" font-size="10" fill="var(--con)" text-anchor="end">6 empty</text>
+    <text x="0" y="112" font-size="11" fill="var(--accent)" font-weight="600">RealFact</text><text x="0" y="125" font-size="9" fill="var(--ink-3)">top-M → cluster → top-K</text>
+    ${row(102, pal)}
+    <text x="385" y="145" font-size="10" fill="var(--sup)" text-anchor="end">10 independent stories</text>
+  </svg>`;
+}
+$("#diag-retrieve").innerHTML = retrieveDiagram();
+
+function pipelineDiagram() {
+  const st = (nm, sub, nov) => `<div class="stage ${nov ? "novel" : ""}">${nov ? '<span class="tag">novel</span>' : ""}<div class="nm">${nm}</div><div class="tiny muted">${sub}</div></div>`;
+  const ar = '<span class="arrow">→</span>';
+  return `
+    <div class="eyebrow" style="margin-bottom:8px">Phase 1: build the evidence index (at ingestion)</div>
+    <div class="pipe">${[st("Live RSS feeds + benchmarks", "FEVER · LIAR · FakeNewsNet"), st("Clean + exact-dup hash", "domain | headline, leakage control"), st("BGE-small-en-v1.5", "d = 384, first 512 tokens"), st("Cached N × 384 matrix", "contiguous, row-major float32")].join(ar)}</div>
+    <div class="eyebrow" style="margin:18px 0 8px">Phase 2: verify a claim</div>
+    <div class="pipe">${[st("Input claim", "embed with BGE → q"), st("OpenMP exact scan", "sᵢ = q·vᵢ → top-M (M = 10K ≫ K)", true), st("Cluster duplicates", "sim > τ → top-K clusters", true), st("NLI per cluster", "SUPPORT / CONTRADICT / NEUTRAL"), st("Weighted aggregation", "w = 1 + λ log₂ n", true), st("Cited 4-way verdict", "Supported · Contradicted · Conflicting · Unverified", true)].join(ar)}</div>
+    <div style="margin:14px 0 0 calc(16.6% + 10px);border:1.5px dashed var(--line);border-radius:10px;padding:10px 12px;max-width:520px">
+      <div class="eyebrow">Benchmarking arm: timing only</div>
+      <div class="small">static / dynamic / guided × 1–16 threads · corpus 10K → 500K → speedup, efficiency, throughput, p95, CPU utilisation, Wilcoxon</div>
+    </div>`;
+}
+$("#diag-pipeline").innerHTML = pipelineDiagram();
+
+/* ------------------------------------------------------------------ charts */
+function baseOpts(xTitle, yTitle, extra = {}) {
+  const ink = css("--ink-2"), line = css("--line");
+  return {
+    responsive: true, maintainAspectRatio: false, animation: false,
+    plugins: { legend: { labels: { color: ink, boxWidth: 12, font: { size: 11 } } }, tooltip: { mode: "index", intersect: false } },
+    scales: {
+      x: { title: { display: true, text: xTitle, color: ink }, ticks: { color: ink }, grid: { color: line }, ...(extra.x || {}) },
+      y: { title: { display: true, text: yTitle, color: ink }, ticks: { color: ink }, grid: { color: line }, beginAtZero: true, ...(extra.y || {}) },
+    },
+  };
+}
+function mkChart(id, cfg) {
+  if (charts[id]) charts[id].destroy();
+  const el = document.getElementById(id);
+  if (!el) return;
+  charts[id] = new Chart(el, cfg);
+  charts[id]._cfgFn = null;
+}
+let redrawers = [];
+function redrawCharts() { setTimeout(() => redrawers.forEach((f) => f()), 30); }
+
+function drawWeightChart() {
+  const ns = [1, 2, 4, 8, 16, 32];
+  const draw = () => mkChart("weight-chart", {
+    type: "line",
+    data: {
+      labels: ns,
+      datasets: [
+        { label: "naive (w = n)", data: ns, borderColor: css("--con"), backgroundColor: css("--con"), tension: 0 },
+        { label: "RealFact λ = 0.5", data: ns.map((n) => 1 + 0.5 * Math.log2(n)), borderColor: css("--accent"), backgroundColor: css("--accent"), borderWidth: 3 },
+        { label: "one vote (λ = 0)", data: ns.map(() => 1), borderColor: css("--ink-3"), backgroundColor: css("--ink-3"), borderDash: [5, 4] },
+      ],
+    },
+    options: baseOpts("syndicated copies n", "votes w"),
+  });
+  draw();
+  if (!redrawers.includes(drawWeightChart)) redrawers.push(drawWeightChart);
+}
+
+/* ------------------------------------------------------------------ benchmark */
+const SCHED_COLORS = () => ({ static: css("--accent"), dynamic: css("--con"), guided: css("--sup") });
+const listOf = (s) => s.split(",").map((x) => x.trim()).filter(Boolean);
+
+$("#bench-btn").onclick = async () => {
+  const body = {
+    sizes: listOf($("#b-sizes").value).map((x) => (x === "live" ? "live" : parseInt(x, 10))),
+    threads: listOf($("#b-threads").value).map(Number),
+    chunks: listOf($("#b-chunks").value).map(Number),
+    reps: +$("#b-reps").value, M: +$("#b-M").value,
+  };
+  const btn = $("#bench-btn");
+  btn.disabled = true;
+  $("#bench-prog").hidden = false;
+  try {
+    const job = await api("/api/bench", { method: "POST", body: JSON.stringify(body) });
+    const res = await waitJob(job.id, (j) => { $("#bench-prog i").style.width = j.progress * 100 + "%"; $("#bench-msg").textContent = j.message; });
+    renderBench(res);
+    $("#bench-msg").textContent = "Finished.";
+  } catch (e) {
+    $("#bench-msg").textContent = "Error: " + e.message;
+  } finally {
+    btn.disabled = false;
+    $("#bench-prog").hidden = true;
+  }
+};
+
+async function waitJob(id, onTick) {
+  for (;;) {
+    const j = await api("/api/jobs/" + id);
+    onTick && onTick(j);
+    if (j.state === "done") return j.result;
+    if (j.state === "error") throw new Error(j.message);
+    await new Promise((r) => setTimeout(r, 700));
+  }
+}
+
+let BENCH = null;
+async function loadLastBench() {
+  if (BENCH) return;
+  const r = await api("/api/bench/last");
+  if (r) renderBench(r);
+  else $("#bench-out").innerHTML = `<div class="card empty">No benchmark yet. Press <b>Run benchmark</b>: the default sweep (5 sizes × 3 schedules × 5 thread counts) takes about a minute.</div>`;
+}
+
+const bytes = (b) => (b >= 1e9 ? (b / 1e9).toFixed(2) + " GB" : b >= 1e6 ? (b / 1e6).toFixed(1) + " MB" : (b / 1e3).toFixed(0) + " KB");
+
+function renderBench(res) {
+  BENCH = res;
+  const pf = res.platform;
+  const l2 = +pf.l2_perf_bytes || 0;
+  const threads = res.params.threads;
+  const pmax = Math.max(...threads);
+  const sizes = res.sizes;
+
+  // analysis text derived from the data
+  const big = sizes[sizes.length - 1];
+  const best = (s, p) => s.configs.filter((c) => c.threads === p).sort((a, b) => a.median_ms - b.median_ms)[0];
+  const allMatch = sizes.every((s) => s.configs.every((c) => c.ids_match_serial));
+  const bestBig = best(big, pmax);
+  const staticRow = (s, p) => s.configs.find((c) => c.schedule === "static" && c.threads === p);
+  const sp = threads.map((p) => staticRow(big, p)?.speedup || 0);
+  let knee = threads[threads.length - 1];
+  for (let i = 1; i < threads.length; i++) if (sp[i] / sp[i - 1] < 1 + 0.35 * (threads[i] / threads[i - 1] - 1)) { knee = threads[i - 1]; break; }
+
+  $("#bench-out").innerHTML = `
+  <div class="grid g4">
+    <div class="card stat"><div class="n">${fmt(Math.max(...big.configs.map((c) => c.speedup)))}×</div><div class="l">best speedup at N = ${big.N.toLocaleString()} vs serial build</div></div>
+    <div class="card stat"><div class="n">${bestBig.schedule}</div><div class="l">fastest schedule at ${pmax} threads (median ${fmt(bestBig.median_ms, 2)} ms)</div></div>
+    <div class="card stat"><div class="n">${fmt(Math.max(...big.configs.map((c) => c.throughput_qps)), 0)}</div><div class="l">peak throughput, queries/s at N = ${big.N.toLocaleString()}</div></div>
+    <div class="card stat"><div class="n ${allMatch ? "yes" : "no"}">${allMatch ? "✓ identical" : "✗ mismatch"}</div><div class="l">retrieved IDs, serial vs every parallel run</div></div>
+  </div>
+
+  <div class="section-head"><h2>Expected vs observed</h2><p>Methodology §III-D predictions checked against this run</p></div>
+  <div class="card small tbl-wrap"><table>
+    <thead><tr><th>Prediction</th><th>Observed on ${esc(pf.cpu)}</th></tr></thead><tbody>
+    <tr><td>Speedup near-linear at 1–4 threads, then flattens at the memory-bandwidth ceiling (0.5 flop/byte) before cores run out</td><td>Static speedup at N = ${big.N.toLocaleString()}: ${threads.map((p, i) => `${p}T ×${fmt(sp[i])}`).join(", ")}. Gains slow after ~${knee} threads on ${pf.physical_cores} cores (${pf.perf_cores} performance + ${pf.efficiency_cores} efficiency).</td></tr>
+    <tr><td>Static wins, because every article costs the same 384-d dot product</td><td>Fastest at ${pmax} threads: <b>${bestBig.schedule}</b>. ${bestBig.schedule === "static" ? "Matches the prediction." : "Differs from the prediction. The methodology attributes this to an external imbalance source, and Apple Silicon's mix of fast performance cores and slower efficiency cores is exactly that: static gives each core an equal share, so the slow cores finish last."} Dynamic with the default chunk (1) pays an atomic counter increment per article.</td></tr>
+    <tr><td>Working set crossing the cache causes a visible throughput step</td><td>${sizes.map((s) => `${s.label}: ${bytes(s.working_set_bytes)}${l2 && s.working_set_bytes > l2 ? " (&gt; L2)" : ""}`).join(" · ")}. Performance-cluster L2 = ${l2 ? bytes(l2) : "n/a"}.</td></tr>
+    <tr><td>OpenMP entry cost is charged separately from T<sub>1</sub></td><td>${sizes.map((s) => `${s.label}: ${fmt(s.openmp_entry_cost_ms, 3)} ms`).join(" · ")} (1-thread OpenMP build minus non-OpenMP serial build)</td></tr>
+    </tbody></table></div>
+
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card"><h3>Speedup S<sub>p</sub> = T<sub>1</sub>/T<sub>p</sub> · N = ${big.N.toLocaleString()}</h3><div class="chart-box"><canvas id="ch-speedup"></canvas></div></div>
+    <div class="card"><h3>Parallel efficiency E<sub>p</sub> = S<sub>p</sub>/p · N = ${big.N.toLocaleString()}</h3><div class="chart-box"><canvas id="ch-eff"></canvas></div></div>
+    <div class="card"><h3>Corpus scaling at ${pmax} threads: median latency</h3><div class="chart-box"><canvas id="ch-scale"></canvas></div></div>
+    <div class="card"><h3>Corpus scaling: throughput (queries/s)</h3><div class="chart-box"><canvas id="ch-thru"></canvas></div></div>
+  </div>
+
+  <div class="section-head"><h2>Per-size results</h2><p>median ± IQR over ${res.params.reps} runs after ${res.params.warmup} warm-ups · M = ${res.params.M.toLocaleString()}</p></div>
+  ${sizes.map((s) => `
+    <div class="card tbl-wrap">
+      <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:baseline;margin-bottom:8px">
+        <h3>${esc(s.label)}</h3>
+        <span class="small muted">working set ${bytes(s.working_set_bytes)} · serial T₁ ${fmt(s.serial.median_ms, 3)} ms (±${fmt(s.serial.iqr_ms, 3)}) · OpenMP-1T ${fmt(s.omp1.median_ms, 3)} ms</span>
+      </div>
+      <table><thead><tr><th>Schedule</th><th class="num">Threads</th><th class="num">Median ms</th><th class="num">IQR</th><th class="num">p95</th><th class="num">Speedup</th><th class="num">Efficiency</th><th class="num">q/s</th><th class="num">CPU util.</th><th class="num" title="Karp–Flatt experimentally determined serial fraction">K–F e</th><th>IDs = serial</th></tr></thead>
+      <tbody>${s.configs.map((c) => `<tr><td>${c.schedule}${c.chunk ? ` (chunk ${c.chunk})` : ""}</td><td class="num">${c.threads}${c.oversubscribed ? "*" : ""}</td><td class="num">${fmt(c.median_ms, 3)}</td><td class="num">${fmt(c.iqr_ms, 3)}</td><td class="num">${fmt(c.p95_ms, 3)}</td><td class="num">${fmt(c.speedup)}</td><td class="num">${fmt(c.efficiency * 100, 0)}%</td><td class="num">${fmt(c.throughput_qps, 0)}</td><td class="num">${fmt(c.cpu_util * 100, 0)}%</td><td class="num">${c.karp_flatt == null ? "—" : fmt(c.karp_flatt, 3)}</td><td class="${c.ids_match_serial ? "yes" : "no"}">${c.ids_match_serial ? "✓" : "✗"}</td></tr>`).join("")}</tbody></table>
+      ${s.wilcoxon.length ? `<p class="small" style="margin:10px 0 0"><b>Wilcoxon signed-rank</b> on paired per-query latencies: ${s.wilcoxon.map((w) => `${w.a} vs ${w.b}: W = ${fmt(w.W, 1)}, p = ${w.p < 0.001 ? w.p.toExponential(1) : fmt(w.p, 3)}, effect r = ${fmt(w.effect_r)}`).join(" · ")}</p>` : ""}
+    </div>`).join("")}
+  <p class="tiny muted">* oversubscribed: more threads than physical cores.</p>
+
+  ${courseSection(res)}
+  <div class="section-head"><h2>Platform disclosure</h2><p>§III-A</p></div>
+  <div class="card"><dl class="kv">
+    <dt>CPU</dt><dd>${esc(pf.cpu)} · ${pf.physical_cores} physical / ${pf.logical_cores} logical (${pf.perf_cores} performance + ${pf.efficiency_cores} efficiency cores)</dd>
+    <dt>Caches</dt><dd>L1d ${bytes(+pf.l1d_bytes)} · L2 ${bytes(+pf.l2_perf_bytes)} (perf cluster) / ${bytes(+pf.l2_eff_bytes)} (eff cluster)</dd>
+    <dt>Memory</dt><dd>${bytes(+pf.mem_bytes)}</dd>
+    <dt>Compiler</dt><dd>${esc(pf.compiler)} · ${esc(pf.flags)}</dd>
+    <dt>OpenMP</dt><dd>${esc(pf.openmp_runtime)} · max threads ${pf.omp_max_threads}</dd>
+    <dt>Pinning</dt><dd>OMP_PROC_BIND=${esc(pf.OMP_PROC_BIND)}, OMP_PLACES=${esc(pf.OMP_PLACES)}. ${esc(pf.pinning_note)}</dd>
+    <dt>Run</dt><dd>${esc(res.finished_at || "")}</dd>
+  </dl></div>`;
+
+  const draw = () => {
+    drawCourseCharts(res);
+    const col = SCHED_COLORS();
+    const series = (s, key) => {
+      const groups = {};
+      s.configs.forEach((c) => { const k = c.schedule + (c.chunk ? `/${c.chunk}` : ""); (groups[k] = groups[k] || []).push(c); });
+      return Object.entries(groups).map(([k, cs]) => ({
+        label: k, data: threads.map((p) => (cs.find((c) => c.threads === p) || {})[key] ?? null),
+        borderColor: col[k.split("/")[0]], backgroundColor: col[k.split("/")[0]], borderDash: k.includes("/") ? [4, 3] : [], tension: 0.15,
+      }));
+    };
+    const xy = (ds, f = (v) => v) => ds.map((d) => ({ ...d, data: d.data.map((v, i) => ({ x: threads[i], y: v === null ? null : f(v) })) }));
+    const linX = { x: { type: "linear", min: 0, max: pmax, ticks: { stepSize: 2 } } };
+    mkChart("ch-speedup", { type: "line", data: { datasets: [...xy(series(big, "speedup")), { label: "ideal", data: threads.map((p) => ({ x: p, y: p })), borderColor: css("--ink-3"), borderDash: [6, 4], pointRadius: 0, borderWidth: 1 }] }, options: baseOpts("threads p", "speedup", linX) });
+    mkChart("ch-eff", { type: "line", data: { datasets: xy(series(big, "efficiency"), (v) => v * 100) }, options: baseOpts("threads p", "efficiency %", { ...linX, y: { max: 110 } }) });
+    const at = (s, sch) => s.configs.find((c) => c.schedule === sch && c.threads === pmax && !c.chunk);
+    const labels = sizes.map((s) => s.N.toLocaleString());
+    const mk = (key, scale = 1) => ["static", "dynamic", "guided"].filter((sch) => sizes[0].configs.some((c) => c.schedule === sch))
+      .map((sch) => ({ label: `${sch} ×${pmax}`, data: sizes.map((s) => (at(s, sch) || {})[key] * scale), borderColor: col[sch], backgroundColor: col[sch] }));
+    mkChart("ch-scale", { type: "line", data: { labels, datasets: [...mk("median_ms"), { label: "serial T₁", data: sizes.map((s) => s.serial.median_ms), borderColor: css("--ink-3"), borderDash: [6, 4] }] }, options: baseOpts("corpus size N", "median ms") });
+    mkChart("ch-thru", { type: "bar", data: { labels, datasets: mk("throughput_qps") }, options: baseOpts("corpus size N", "queries / s", { y: { type: "logarithmic", beginAtZero: false } }) });
+  };
+  draw();
+  loadBaselineCompare(res);
+  redrawers = redrawers.filter((f) => f.name !== "benchDraw");
+  Object.defineProperty(draw, "name", { value: "benchDraw" });
+  redrawers.push(draw);
+}
+
+/* ------------------------------------------------------------------ course analyses */
+function courseSection(res) {
+  if (!res.load_balance) return "";
+  const lb = res.load_balance, cs = res.chunk_sweep, ws = res.weak_scaling, bt = res.batched;
+  const big = res.sizes[res.sizes.length - 1];
+  const kf = big.configs.filter((c) => c.schedule === "guided" && c.karp_flatt != null);
+  return `
+  <div class="section-head"><h2>Parallel Computing analyses</h2><p>Course concepts applied to the retrieval kernel</p></div>
+  <div id="v1v2"></div>
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card"><h3>Load balance: per-thread busy time (${lb[0].threads} threads, N = ${cs.N.toLocaleString()})</h3>
+      <div class="chart-box"><canvas id="ch-lb"></canvas></div>
+      <table class="small" style="margin-top:8px"><thead><tr><th>Schedule</th><th class="num">kernel ms</th><th class="num">max/mean busy</th><th class="num">idle %</th><th class="num">rows min–max</th></tr></thead>
+      <tbody>${lb.map((r) => `<tr><td>${r.schedule}${r.chunk ? ` (chunk ${r.chunk})` : ""}</td><td class="num">${fmt(r.kernel_ms, 2)}</td><td class="num">${fmt(r.imbalance, 2)}</td><td class="num">${fmt(r.idle_pct, 0)}%</td><td class="num">${Math.min(...r.rows).toLocaleString()}–${Math.max(...r.rows).toLocaleString()}</td></tr>`).join("")}</tbody></table>
+      <p class="tiny muted" style="margin:8px 0 0">The chart leaves out configurations more than 3× slower than the best (dynamic, chunk 1). Static gives every thread the same number of rows, so threads on slower efficiency cores finish last. Guided hands out shrinking chunks, so fast cores take more rows (see the rows column) and finish together. Dynamic with chunk 1 balances well, but every row costs an atomic counter update.</p></div>
+    <div class="card"><h3>Chunk-size sweep (${cs.threads} threads, N = ${cs.N.toLocaleString()})</h3>
+      <div class="chart-box"><canvas id="ch-chunk"></canvas></div>
+      <p class="tiny muted" style="margin:8px 0 0">Small dynamic chunks pay scheduling overhead on every chunk; very large chunks bring back static's imbalance. The sweet spot lies in between. Dashed line = static.</p></div>
+    <div class="card"><h3>Weak scaling (Gustafson): ${ws[0].n_per_thread.toLocaleString()} rows per thread</h3>
+      <div class="chart-box"><canvas id="ch-weak"></canvas></div>
+      <p class="tiny muted" style="margin:8px 0 0">Work grows with p, so ideal weak efficiency stays at 100%. It falls once total bandwidth demand exceeds the memory system, which is the same ceiling that limits strong scaling.</p></div>
+    <div class="card"><h3>Karp–Flatt serial fraction (guided, N = ${big.N.toLocaleString()})</h3>
+      <div class="chart-box"><canvas id="ch-kf"></canvas></div>
+      <p class="tiny muted" style="margin:8px 0 0">e = (1/S − 1/p)/(1 − 1/p). A constant e would mean a fixed serial part (Amdahl). An e that <b>rises</b> with p, as here, points to an overhead that grows with p: memory-bandwidth contention, plus the P-heap merge. The merge is serial but small.</p></div>
+    <div class="card" style="grid-column:1/-1"><h3>Roofline: multi-query blocking (${bt.threads} threads, N = ${bt.N.toLocaleString()})</h3>
+      <div class="grid g2"><div class="chart-box"><canvas id="ch-roof"></canvas></div><div class="chart-box"><canvas id="ch-batch"></canvas></div></div>
+      <p class="tiny muted" style="margin:8px 0 0">One query reads 768 MB to do 2 flops per 4-byte float: 0.5 flop/byte, deep in the memory-bound region. Scoring Q queries per row load raises intensity to 0.5·Q flop/byte, so throughput climbs until the kernel becomes compute-bound. With M = 10,000, each thread keeps Q heaps of 10K entries, and heap maintenance eats most of the gain. That trade-off is why batching suits evaluation runs with a small M.</p></div>
+  </div>`;
+}
+
+function drawCourseCharts(res) {
+  if (!res.load_balance) return;
+  const col = SCHED_COLORS();
+  const lbAll = res.load_balance;
+  const fastest = Math.min(...lbAll.map((r) => r.kernel_ms));
+  const lb = lbAll.filter((r) => r.kernel_ms < 3 * fastest);  // chunk-1 dynamic stays in the table only
+  const lbColor = (r) => (r.schedule === "dynamic" && r.chunk ? css("--conf") : col[r.schedule]);
+  mkChart("ch-lb", { type: "bar", data: { labels: lb[0].busy_ms.map((_, i) => "T" + i),
+    datasets: lb.map((r) => ({ label: `${r.schedule}${r.chunk ? "/" + r.chunk : ""}`, data: r.busy_ms, backgroundColor: lbColor(r) })) },
+    options: baseOpts("thread", "busy ms in loop") });
+  const cs = res.chunk_sweep.rows;
+  const chunks = [...new Set(cs.filter((r) => r.chunk).map((r) => r.chunk))];
+  const st = cs.find((r) => r.schedule === "static").median_ms;
+  mkChart("ch-chunk", { type: "line", data: { labels: chunks.map(String), datasets: [
+    ...["dynamic", "guided"].map((sch) => ({ label: sch, data: chunks.map((c) => cs.find((r) => r.schedule === sch && r.chunk === c).median_ms), borderColor: col[sch], backgroundColor: col[sch] })),
+    { label: "static", data: chunks.map(() => st), borderColor: col.static, borderDash: [6, 4], pointRadius: 0 }] },
+    options: baseOpts("chunk size (rows)", "median ms", { y: { type: "logarithmic", beginAtZero: false } }) });
+  const ws = res.weak_scaling;
+  mkChart("ch-weak", { type: "line", data: { datasets: [
+    ...ws.map((w) => ({ label: w.schedule, data: w.points.map((pt) => ({ x: pt.threads, y: pt.weak_efficiency * 100 })), borderColor: col[w.schedule], backgroundColor: col[w.schedule] })),
+    { label: "ideal", data: [{ x: 1, y: 100 }, { x: Math.max(...res.params.threads), y: 100 }], borderColor: css("--ink-3"), borderDash: [6, 4], pointRadius: 0 }] },
+    options: baseOpts("threads p", "weak efficiency %", { x: { type: "linear" }, y: { max: 110 } }) });
+  const big = res.sizes[res.sizes.length - 1];
+  mkChart("ch-kf", { type: "line", data: { datasets: ["static", "guided"].map((sch) => ({ label: sch,
+    data: big.configs.filter((c) => c.schedule === sch && c.karp_flatt != null && !c.chunk).map((c) => ({ x: c.threads, y: c.karp_flatt })), borderColor: col[sch], backgroundColor: col[sch] })) },
+    options: baseOpts("threads p", "serial fraction e", { x: { type: "linear" } }) });
+  const bt = res.batched.rows;
+  const Ms = [...new Set(bt.map((r) => r.M))];
+  const mcol = [css("--accent"), css("--con")];
+  const bw = Math.max(...bt.map((r) => r.gbytes_per_s));
+  const ais = [0.25, 0.5, 1, 2, 4, 8, 16, 32];
+  mkChart("ch-roof", { type: "scatter", data: { datasets: [
+    { label: `bandwidth roof (${fmt(bw, 0)} GB/s measured)`, type: "line", data: ais.map((a) => ({ x: a, y: a * bw })), borderColor: css("--ink-3"), borderDash: [6, 4], pointRadius: 0 },
+    ...Ms.map((M, i) => ({ label: `attained, M = ${M.toLocaleString()}`, data: bt.filter((r) => r.M === M).map((r) => ({ x: r.flop_per_byte, y: r.gflops })), borderColor: mcol[i], backgroundColor: mcol[i], showLine: true }))] },
+    options: baseOpts("arithmetic intensity (flop/byte)", "GFLOP/s", { x: { type: "logarithmic" }, y: { type: "logarithmic", beginAtZero: false } }) });
+  mkChart("ch-batch", { type: "bar", data: { labels: [...new Set(bt.map((r) => "Q=" + r.Q))],
+    datasets: Ms.map((M, i) => ({ label: `M = ${M.toLocaleString()}`, data: bt.filter((r) => r.M === M).map((r) => r.throughput_qps), backgroundColor: mcol[i] })) },
+    options: baseOpts("queries per pass", "queries / s") });
+}
+
+async function loadBaselineCompare(res) {
+  const el = document.getElementById("v1v2");
+  if (!el) return;
+  const v1 = await api("/api/bench/baseline");
+  if (!v1) { el.innerHTML = ""; return; }
+  const pick = (r) => r.sizes[r.sizes.length - 1];
+  const a = pick(v1), b = pick(res);
+  if (a.N !== b.N) { el.innerHTML = ""; return; }
+  const best = (s) => s.configs.slice().sort((x, y) => x.median_ms - y.median_ms)[0];
+  const ba = best(a), bb = best(b);
+  el.innerHTML = `<div class="card tbl-wrap"><h3>Kernel v1 → v2 (N = ${b.N.toLocaleString()})</h3>
+    <table style="margin-top:8px"><thead><tr><th></th><th class="num">v1: single accumulator</th><th class="num">v2: 16-way ILP</th><th class="num">change</th></tr></thead><tbody>
+    <tr><td>Serial T₁ (no OpenMP)</td><td class="num">${fmt(a.serial.median_ms, 2)} ms</td><td class="num">${fmt(b.serial.median_ms, 2)} ms</td><td class="num yes">${fmt(a.serial.median_ms / b.serial.median_ms, 2)}× faster</td></tr>
+    <tr><td>Single-core bandwidth</td><td class="num">${fmt(b.working_set_bytes / a.serial.median_ms / 1e6, 1)} GB/s</td><td class="num">${fmt(b.working_set_bytes / b.serial.median_ms / 1e6, 1)} GB/s</td><td></td></tr>
+    <tr><td>Best parallel (${esc(ba.schedule)} ${ba.threads}T → ${esc(bb.schedule)} ${bb.threads}T)</td><td class="num">${fmt(ba.median_ms, 2)} ms</td><td class="num">${fmt(bb.median_ms, 2)} ms</td><td class="num yes">${fmt(ba.median_ms / bb.median_ms, 2)}× faster</td></tr>
+    <tr><td>Speedup over its own T₁</td><td class="num">${fmt(ba.speedup, 2)}×</td><td class="num">${fmt(bb.speedup, 2)}×</td><td class="num muted">lower</td></tr>
+    <tr><td>Threads needed to reach ~90% of best</td><td class="num">${a.configs.filter((c) => c.median_ms <= ba.median_ms / 0.9).sort((x, y) => x.threads - y.threads)[0].threads}</td><td class="num">${b.configs.filter((c) => c.median_ms <= bb.median_ms / 0.9).sort((x, y) => x.threads - y.threads)[0].threads}</td><td></td></tr>
+    </tbody></table>
+    <p class="tiny muted" style="margin:8px 0 0">v1 accumulated every row into one vector register, so each add waited for the one before it (latency-bound). v2 uses four independent registers, with the summation order written out so results stay bit-exact. Absolute time improves, but speedup <em>drops</em>: a faster core reaches the shared memory-bandwidth ceiling with fewer threads. That is the roofline in practice. Speedup only means something next to T₁.</p></div>`;
+}
+
+/* ------------------------------------------------------------------ self-test */
+$("#selftest-btn").onclick = async () => {
+  const b = $("#selftest-btn");
+  b.disabled = true;
+  b.innerHTML = `<span class="spinner"></span> Running`;
+  try {
+    const r = await api("/api/selftest", { method: "POST" });
+    $("#selftest-out").innerHTML = `<p class="small ${r.passed === r.total ? "yes" : "no"}" style="margin:12px 0 6px">${r.passed}/${r.total} checks passed</p>
+      <div class="tbl-wrap"><table class="small"><tbody>${r.results.map((t) => `<tr><td class="${t.skipped ? "muted" : t.ok ? "yes" : "no"}">${t.skipped ? "skip" : t.ok ? "✓" : "✗"}</td><td>${esc(t.doc || t.name)}</td><td class="muted">${esc(t.detail)}</td><td class="num">${fmt(t.ms, 0)} ms</td></tr>`).join("")}</tbody></table></div>`;
+  } catch (e) {
+    $("#selftest-out").innerHTML = `<div class="err">${esc(e.message)}</div>`;
+  } finally {
+    b.disabled = false;
+    b.textContent = "Run self-test";
+  }
+};
+
+async function loadCmpBench() {
+  const r = BENCH || (await api("/api/bench/last"));
+  if (!r) { $("#cmp-bench").innerHTML = `<span class="muted">Run the Parallel benchmark tab to fill this panel with measured numbers.</span>`; return; }
+  const big = r.sizes[r.sizes.length - 1];
+  const s1 = big.serial.median_ms;
+  const bestc = big.configs.slice().sort((a, b) => a.median_ms - b.median_ms)[0];
+  $("#cmp-bench").innerHTML = `<table>
+    <tr><td>Corpus</td><td class="num">${esc(big.label)}</td></tr>
+    <tr><td>Serial scan (no OpenMP)</td><td class="num">${fmt(s1, 2)} ms</td></tr>
+    <tr><td>RealFact best (${bestc.schedule}, ${bestc.threads}T)</td><td class="num"><b>${fmt(bestc.median_ms, 2)} ms</b></td></tr>
+    <tr><td>Speedup / throughput</td><td class="num">×${fmt(bestc.speedup)} · ${fmt(bestc.throughput_qps, 0)} q/s</td></tr>
+    <tr><td>IDs identical to serial</td><td class="num ${big.configs.every((c) => c.ids_match_serial) ? "yes" : "no"}">${big.configs.every((c) => c.ids_match_serial) ? "✓ all configs" : "✗"}</td></tr></table>`;
+}
+
+/* ------------------------------------------------------------------ corpus */
+$("#ingest-btn").onclick = async () => {
+  const b = $("#ingest-btn");
+  b.disabled = true;
+  b.innerHTML = `<span class="spinner"></span> Fetching`;
+  try {
+    const job = await api("/api/ingest", { method: "POST" });
+    const r = await waitJob(job.id);
+    b.textContent = `+${r.added} new`;
+    loadCorpus();
+    pollStatus();
+  } catch (e) {
+    b.textContent = "Error";
+  } finally {
+    setTimeout(() => { b.disabled = false; b.textContent = "Fetch feeds now"; }, 2500);
+  }
+};
+
+async function loadCorpus() {
+  const c = await api("/api/corpus");
+  $("#c-title").textContent = `${c.articles.toLocaleString()} articles from ${c.domains.length} outlets`;
+  $("#c-sub").textContent = `Embedding matrix ${bytes(c.matrix_bytes)} (N × 384 float32, contiguous) · headline + lead from permitted RSS only`;
+  const maxN = Math.max(1, ...c.domains.map((d) => d.n));
+  $("#corpus-out").innerHTML = `
+  <div class="grid g2">
+    <div class="card"><h3>Articles per outlet</h3>
+      <div style="margin-top:10px">${c.domains.map((d) => `<div style="display:grid;grid-template-columns:140px 1fr 50px;gap:8px;align-items:center;font-size:12.5px;margin:3px 0"><span>${esc(d.domain)}</span><span style="background:var(--surface-2);border-radius:4px;height:10px"><i style="display:block;height:100%;width:${(d.n / maxN) * 100}%;background:var(--accent);border-radius:4px"></i></span><span class="mono tiny" style="text-align:right">${d.n}</span></div>`).join("")}</div></div>
+    <div class="stack">
+      <div class="card tbl-wrap"><h3>Ingestion log</h3><table style="margin-top:8px"><thead><tr><th>When (UTC)</th><th class="num">Feeds ok</th><th class="num">Seen</th><th class="num">Exact dups</th><th class="num">Added</th><th class="num">s</th></tr></thead>
+        <tbody>${c.ingest_log.map((l) => `<tr><td class="tiny">${esc(l.at.slice(0, 19).replace("T", " "))}</td><td class="num">${l.feeds_ok}${l.feeds_failed ? `/${l.feeds_ok + l.feeds_failed}` : ""}</td><td class="num">${l.seen}</td><td class="num">${l.exact_dups}</td><td class="num">${l.added}</td><td class="num">${l.seconds}</td></tr>`).join("")}</tbody></table>
+        <p class="tiny muted" style="margin:8px 0 0">“Exact dups” are dropped by the (domain, normalised headline) hash before embedding. Near-duplicates across outlets are kept and handled by clustering at query time.</p></div>
+      <div class="card"><h3>Most recent</h3><ul class="clean small" style="margin-top:8px">${c.recent.slice(0, 12).map((r) => `<li><span class="muted tiny">${esc(r.domain)}</span> · <a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.title)}</a></li>`).join("")}</ul></div>
+    </div>
+  </div>`;
+}
+
+/* ------------------------------------------------------------------ evaluation */
+async function loadEval() {
+  const r = await api("/api/eval/last");
+  const howto = `
+    <div class="card">
+      <h3>How to run the verification-quality evaluation</h3>
+      <p class="small" style="margin-top:6px">The benchmark datasets aren't bundled, because of licences and size. Put them under <code>data/datasets/</code> and run:</p>
+      <div class="formula">.venv/bin/python -m eval.run_eval --dataset liar --path data/datasets/liar/test.tsv --limit 300</div>
+      <div class="formula" style="margin-top:6px">.venv/bin/python -m eval.run_eval --dataset fever --path data/datasets/fever/shared_task_dev.jsonl</div>
+      <div class="formula" style="margin-top:6px">.venv/bin/python -m eval.run_eval --dataset fakenewsnet --path data/datasets/fakenewsnet</div>
+      <p class="small muted" style="margin-top:10px">The harness applies the label mapping from §I-B and leakage control, and scores all four aggregation rules (log-weighted, λ = 0, naive, filter off) from the same retrieval. It reports accuracy, macro and per-class P/R/F1, Unverified/Conflicting counts, LIAR's middle band separately, and FakeNewsNet's merged not-supported class.</p>
+      <div class="callout warn small" style="margin-top:10px">Honest caveat: FEVER's gold evidence is Wikipedia, and LIAR's claims date from 2007–2016, while this prototype's evidence pool is <em>current news</em>. On those datasets most claims will correctly come back <b>Unverified</b>. Reproducing FEVER-style accuracy requires indexing the FEVER Wikipedia dump (≈5.4M documents) into the same engine: <code>store.add()</code> takes any texts.</div>
+    </div>`;
+  if (!r) { $("#eval-out").innerHTML = `<div class="card empty" style="margin-bottom:16px">No evaluation results yet.</div>` + howto; return; }
+  const modes = ["independence_log", "one_vote", "naive_count", "filter_off"];
+  const names = { independence_log: "RealFact log-weighted", one_vote: "λ = 0", naive_count: "naive counting", filter_off: "filter off" };
+  $("#eval-out").innerHTML = Object.values(r).map((d) => `
+    <div class="card tbl-wrap">
+      <h3>${esc(d.dataset.toUpperCase())}: ${d.n} claims · corpus ${d.corpus_size.toLocaleString()} · ${esc(d.finished_at)}</h3>
+      <p class="small muted">median latency ${fmt(d.median_latency_ms, 1)} ms · p95 ${fmt(d.p95_latency_ms, 1)} ms · Recall@K: ${esc(d.recall_at_k)}</p>
+      ${(() => { const pc = d.modes.independence_log.per_class; const maj = Object.entries(pc).sort((a, b) => b[1].support - a[1].support)[0]; const unv = (d.modes.independence_log.verdict_counts.Unverified || 0) / d.n;
+        return `<p class="small">Majority-class baseline (always ${maj[0]}): <b>${fmt((maj[1].support / d.n) * 100, 1)}%</b> · claims answered Unverified: <b>${fmt(unv * 100, 1)}%</b>${unv > 0.8 ? ". Most claims found no evidence in the current news corpus, so accuracy here measures corpus coverage, not reasoning quality." : ""}</p>`; })()}
+      <table><thead><tr><th>Mode</th><th class="num">Accuracy</th><th class="num">Macro F1</th><th class="num">F1 SUP</th><th class="num">F1 CON</th><th class="num">F1 NEU</th><th>Verdict counts</th></tr></thead>
+      <tbody>${modes.map((m) => { const x = d.modes[m]; return `<tr class="${m === "independence_log" ? "ours" : ""}"><td>${names[m]}</td><td class="num">${fmt(x.accuracy * 100, 1)}%</td><td class="num">${fmt(x.macro_f1, 3)}</td><td class="num">${fmt(x.per_class.SUPPORT.f1, 3)}</td><td class="num">${fmt(x.per_class.CONTRADICT.f1, 3)}</td><td class="num">${fmt(x.per_class.NEUTRAL.f1, 3)}</td><td class="tiny">${Object.entries(x.verdict_counts).map(([k, v]) => `${k}: ${v}`).join(" · ")}</td></tr>`; }).join("")}</tbody></table>
+      ${d.modes.independence_log.middle_band_verdicts ? `<p class="small" style="margin:8px 0 0">LIAR middle band (half-true / barely-true) verdicts: ${Object.entries(d.modes.independence_log.middle_band_verdicts).map(([k, v]) => `${k}: ${v}`).join(" · ")} · two-sided band accuracy ${fmt(d.modes.independence_log.two_sided_band * 100, 1)}%</p>` : ""}
+      ${d.modes.independence_log.merged_not_supported ? `<p class="small" style="margin:8px 0 0">Merged not-supported accuracy: ${fmt(d.modes.independence_log.merged_not_supported.accuracy * 100, 1)}%</p>` : ""}
+    </div>`).join("") + `<div style="margin-top:16px">${howto}</div>`;
+}
+
+/* ------------------------------------------------------------------ boot */
+(async function boot() {
+  await pollStatus();
+  setInterval(pollStatus, 6000);
+  buildParams(STATUS ? STATUS.defaults : { M: 10000, K: 10, tau: 0.9, lam: 0.5, theta: 0.6, delta: 0.25, min_rel: 0.68, threads: 0, schedule: "guided" });
+  loadExamples();
+  const h = location.hash.slice(1);
+  if (h && $("#tab-" + h)) showTab(h);
+})();

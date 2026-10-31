@@ -1,0 +1,1081 @@
+% RealFact project report. Build:  make report   (or: tectonic report/realfact_report.tex)
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[margin=2.3cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs,tabularx,multirow,array,longtable}
+\usepackage{graphicx}
+\usepackage[table]{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,fit,calc,shapes.geometric}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.17}
+\usepgfplotslibrary{groupplots}
+\usepackage{listings}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{enumitem}
+\usepackage{caption}
+\usepackage{float}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+
+\definecolor{novel}{HTML}{2F5BD3}
+\definecolor{novelsoft}{HTML}{E5ECFC}
+\definecolor{sup}{HTML}{1F8A57}
+\definecolor{con}{HTML}{C43C3C}
+\definecolor{conf}{HTML}{B7791F}
+\definecolor{inkthree}{HTML}{7C818C}
+\definecolor{codebg}{HTML}{F4F5F7}
+
+\lstset{basicstyle=\ttfamily\footnotesize,backgroundcolor=\color{codebg},frame=single,rulecolor=\color{black!15},
+  keywordstyle=\color{novel}\bfseries,commentstyle=\color{inkthree}\itshape,columns=fullflexible,
+  breaklines=true,showstringspaces=false,xleftmargin=4pt,xrightmargin=4pt,aboveskip=8pt,belowskip=8pt}
+
+\captionsetup{font=small,labelfont=bf}
+\setlist{itemsep=2pt,topsep=4pt}
+\setlength{\emergencystretch}{2.5em}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcommand{\yes}{\textcolor{sup}{\textbf{Yes}}}
+\newcommand{\no}{\textcolor{con}{No}}
+\newcommand{\partl}{\textcolor{conf}{Partial}}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small RealFact: OpenMP-Accelerated News Verification}
+\fancyhead[R]{\small IT 301 Parallel Computing}
+\fancyfoot[C]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\begin{document}
+
+% ------------------------------------------------------------------ title page
+\begin{titlepage}
+\centering
+\vspace*{1.2cm}
+{\large National Institute of Technology Karnataka, Surathkal\par}
+{\normalsize Department of Information Technology\par}
+\vspace{0.4cm}
+{\normalsize IT 301 --- Parallel Computing\par}
+\vspace{2.2cm}
+{\Huge\bfseries RealFact\par}
+\vspace{0.4cm}
+{\LARGE OpenMP-Accelerated, Independence-Aware\\[2pt] Real-Time News Verification\par}
+\vspace{1.2cm}
+{\large Project Report\par}
+\vspace{2.2cm}
+\begin{tabular}{ll}
+Adithya Shyam D & 241IT005\\
+Krishna & 241IT039\\
+P Suman & 241IT049\\
+Saurabh & 241IT072\\
+\end{tabular}
+\vfill
+{\small Primary reference: Z.~Guo, M.~Schlichtkrull and A.~Vlachos, ``A Survey on Automated Fact-Checking,''\\
+\emph{Transactions of the Association for Computational Linguistics}, vol.~10, pp.~178--206, 2022.\par}
+\vspace{0.8cm}
+{\large 31 October 2026\par}
+\end{titlepage}
+
+% ------------------------------------------------------------------ abstract
+\begin{abstract}
+\noindent
+Misinformation spreads faster than people can check it. Fake-news classifiers that judge writing style fail
+when a false claim is written in a credible tone. Evidence-based verification avoids this: it retrieves
+related articles and reasons over them. But comparing a claim against a live pool of thousands of articles,
+in real time, is a large similarity-search problem. We present \textbf{RealFact}, a working prototype that
+verifies a news claim against a continuously refreshed corpus of live RSS articles. It has two
+contributions. The first is an \emph{independence-aware} aggregation stage: it retrieves a wide candidate pool
+($M = 10{,}000 \gg K$), clusters near-duplicate (syndicated) copies, and gives a cluster of $n_c$ copies the
+weight $w_c = 1 + \lambda\log_2 n_c$ instead of $n_c$ votes. It then issues a cited four-way verdict:
+Supported, Contradicted, Conflicting Evidence or Unverified. The second is an \emph{exact} C++/OpenMP retrieval
+kernel, benchmarked across static, dynamic and guided scheduling at 1--16 threads and corpus sizes from 1.7K to
+500K. On an Apple M3 Pro the kernel reaches a \textbf{4.61$\times$} speedup over a non-OpenMP serial build
+at $N = 500$K (guided, 16 threads), sustaining about 81\,GB/s of embedding reads. Every one of the 75 timed
+configurations returned article IDs bit-identical to the serial build. We then verified the system with a
+12-check correctness suite and applied course techniques to the kernel. Restructuring the dot product for
+instruction-level parallelism made the serial scan \textbf{2.6$\times$} faster and brought the best parallel time to
+8.0\,ms (96\,GB/s, at the memory ceiling with 8 threads). Guided scheduling cut idle time on the heterogeneous
+cores from 11\% to 1\%, and multi-query blocking raised throughput \textbf{5$\times$} by moving the kernel up the
+roofline. A controlled syndication test shows that
+naive duplicate counting and plain top-$K$ retrieval flip a contested claim to \emph{Contradicted}, while
+RealFact's verdict correctly stays \emph{Conflicting Evidence}. We map each design decision to the lessons of
+Guo et~al.'s survey, compare RealFact with existing approaches, and report a LIAR evaluation that exposes
+the dependence of accuracy on evidence-corpus coverage.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+% ================================================================== 1
+\section{Introduction}
+
+\subsection{Problem}
+Automated fact-checking asks whether a claim is supported by the available evidence. Two weaknesses of
+common approaches motivate this project:
+\begin{enumerate}
+  \item \textbf{Style-based classifiers judge text, not truth.} A model trained to separate ``fake'' from
+  ``real'' articles by wording fails when misleading content imitates the tone of credible reporting.
+  \item \textbf{Evidence-based systems are judged on accuracy alone.} Systems built on benchmarks such as
+  FEVER, LIAR and HoVer have advanced retrieval and multi-hop reasoning. They are almost never evaluated for
+  latency or multicore scalability, both of which matter when the evidence pool is live and large.
+\end{enumerate}
+A third, less visible problem appears when the evidence pool is real news. Outlets republish the same
+wire report, so a ranked list of ``evidence'' can be ten copies of one story. If every copy counts as an
+independent confirmation, a single report can outvote several genuinely independent ones.
+
+\subsection{Research question}
+\begin{quote}
+\emph{Can large-scale, multi-source evidence retrieval for real-time news verification run efficiently on a
+multicore CPU using OpenMP, without counting duplicate or syndicated reports as independent evidence?}
+\end{quote}
+
+\subsection{Contributions}
+\begin{enumerate}
+  \item An \textbf{independence-aware aggregation} stage: retrieve wide, cluster duplicates, keep the top-$K$
+  clusters, and weight each by $w_c = 1+\lambda\log_2 n_c$ (Section~\ref{sec:agg}).
+  \item An \textbf{exact OpenMP similarity kernel} with thread-local, cache-line-padded heaps and deterministic
+  tie-breaking, benchmarked across schedules $\times$ threads $\times$ corpus size (Sections~\ref{sec:par} and \ref{sec:resperf}).
+  \item Operation over \textbf{live, permitted news feeds}, ingested from 42 RSS feeds and refreshed every 20 minutes, instead of a frozen corpus.
+  \item An \textbf{explainable four-way verdict} that cites every evidence cluster with its weight and signed
+  contribution, instead of a binary fake/real label.
+  \item A correctness suite and a set of course-driven kernel optimisations: ILP vectorisation, load-balance
+  instrumentation, chunk tuning, weak scaling, Karp--Flatt analysis, and multi-query cache blocking
+  (Section~\ref{sec:opt}).
+  \item A web interface that runs the pipeline, shows how existing aggregation rules would judge the same
+  evidence, and presents what we learned from the survey.
+\end{enumerate}
+
+% ================================================================== 2
+\section{Background: What We Learned from the Survey}
+\label{sec:survey}
+
+Our primary reference is the survey by Guo, Schlichtkrull and Vlachos~\cite{guo2022}. It organises automated
+fact-checking into one framework and reviews datasets, methods and open problems. This section summarises the
+parts that shaped RealFact.
+
+\subsection{The four-stage framework and our scope}
+The survey decomposes automated fact-checking into four stages: \emph{claim detection} (finding check-worthy
+claims), \emph{evidence retrieval}, \emph{verdict prediction}, and \emph{justification production}
+(explaining the verdict). Figure~\ref{fig:framework} places RealFact in that framework. Following our
+methodology, this project addresses evidence retrieval and verdict prediction. Claim detection is out of
+scope, since the user supplies the claim. Justification is covered only partially: we cite evidence and show
+each cluster's contribution, but do not generate free-text explanations.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  stage/.style={draw,rounded corners=3pt,minimum width=3.3cm,minimum height=1.25cm,align=center,font=\small},
+  fwin/.style={stage,fill=novelsoft,draw=novel,line width=0.9pt},
+  fwout/.style={stage,dashed,draw=inkthree,fill=black!3},
+  arr/.style={-{Stealth[length=2.2mm]},thick,inkthree}]
+\node[fwout] (a) {\textbf{Claim detection}\\[-1pt]\scriptsize out of scope};
+\node[fwin,right=0.45cm of a] (b) {\textbf{Evidence retrieval}\\[-1pt]\scriptsize\textcolor{novel}{RealFact}};
+\node[fwin,right=0.45cm of b] (c) {\textbf{Verdict prediction}\\[-1pt]\scriptsize\textcolor{novel}{RealFact}};
+\node[fwout,right=0.45cm of c] (d) {\textbf{Justification}\\[-1pt]\scriptsize partial: citations};
+\draw[arr] (a)--(b); \draw[arr] (b)--(c); \draw[arr] (c)--(d);
+\end{tikzpicture}
+\caption{The automated fact-checking framework of Guo et al.~\cite{guo2022}, with RealFact's scope highlighted.}
+\label{fig:framework}
+\end{figure}
+
+\subsection{Lessons and the design decisions they led to}
+Table~\ref{tab:lessons} lists each idea we took from the survey (paraphrased) and the RealFact decision it
+led to. The same mapping is shown in the application's ``What we learned'' tab, with a pointer to where each
+decision can be seen working.
+
+{\small
+\begin{longtable}{P{0.44\linewidth}P{0.50\linewidth}}
+\caption{Lessons from the survey and how RealFact responds.}\label{tab:lessons}\\
+\toprule
+\textbf{Survey point (paraphrased)} & \textbf{RealFact design decision}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Survey point (paraphrased)} & \textbf{RealFact design decision}\\
+\midrule
+\endhead
+Fact-checking is a pipeline: retrieval of evidence followed by verdict prediction over that evidence. &
+Retrieval and verdict prediction are separate, separately timed stages. Verdicts come from evidence, not from the claim's writing style.\\
+\addlinespace
+Claim-only datasets (e.g.\ LIAR) give no evidence documents, so models learn from surface cues and metadata. &
+Every verdict is computed from retrieved articles and lists them. With no relevant evidence the system answers \emph{Unverified}.\\
+\addlinespace
+Most systems assume a single trustworthy evidence source. Handling conflicting or untrustworthy evidence is an open problem. &
+\emph{Conflicting Evidence} is a first-class verdict, and syndicated copies are discounted so one story cannot pose as many independent witnesses.\\
+\addlinespace
+Fine-grained ratings such as ``half-true'' are usually meta-ratings over composite claims whose parts differ in veracity. &
+LIAR's middle band is reported separately and treated as closer to \emph{Conflicting} than to \emph{Neutral}.\\
+\addlinespace
+``Not enough information'' (FEVER's NEI) is a legitimate outcome. &
+\emph{Unverified} is triggered by an explicit sufficiency threshold $\theta$ on polar evidence mass, plus a relevance floor.\\
+\addlinespace
+Datasets have artefacts: artificially written claims let models exploit claim-only cues, and web-retrieved evidence can leak the answer. &
+Results are planned on FEVER, LIAR and FakeNewsNet side by side. The engine's \texttt{exclude} mask removes a claim's own article before the scan.\\
+\addlinespace
+Benchmarks are built on static snapshots, while real claims concern recent events. &
+Evidence comes from 42 permitted live RSS feeds, re-ingested on a timer, with timestamps and source domains kept.\\
+\addlinespace
+Surveyed systems are evaluated on accuracy, F1 and evidence recall. Efficiency is rarely reported. &
+A second, independently falsifiable axis: an OpenMP kernel measured across schedules, threads and corpus sizes, checked bit-for-bit against serial.\\
+\bottomrule
+\end{longtable}
+}
+
+\subsection{Open challenges named in the survey}
+\begin{table}[H]
+\centering\small
+\caption{Open challenges discussed in the survey and RealFact's position.}
+\label{tab:challenges}
+\begin{tabularx}{\linewidth}{P{0.36\linewidth}lY}
+\toprule
+\textbf{Challenge} & \textbf{Addressed?} & \textbf{How / why not}\\
+\midrule
+Conflicting or untrustworthy evidence & \yes & Conflicting verdict ($\delta < D < 1-\delta$); independence weighting.\\
+Label choice for fine-grained ratings & \yes & LIAR middle band reported separately.\\
+Dataset artefacts and claim-only cues & \partl & Multiple datasets reported; listed as a threat to validity.\\
+Evidence leakage & \yes & Leakage mask in the engine; source article excluded.\\
+Up-to-date evidence & \yes & Live RSS ingestion every 20 minutes.\\
+Explainability / faithful justification & \partl & Cited clusters with $w_c p_c \sigma_c$; no generated text.\\
+Multimodal and multilingual claims & \no & English text only.\\
+Efficiency and scalability & \yes & This project's systems contribution.\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Other related work}
+\textbf{FEVER}~\cite{fever} established the retrieve-then-classify formulation with SUPPORTED / REFUTED /
+NOT ENOUGH INFO labels over Wikipedia. \textbf{LIAR}~\cite{liar} provides 12,836 short political statements on a
+six-point truth scale with speaker metadata but no evidence documents. \textbf{FakeNewsNet}~\cite{fakenewsnet}
+provides full news articles with source URLs and is the only one of the three that contains syndicated copies.
+\textbf{HoVer} and \textbf{IMRRF} extend retrieval to multi-hop reasoning. Like the others, they report accuracy
+but not multicore latency. We use \textbf{BGE-small-en-v1.5}~\cite{bge} for embeddings, \textbf{OpenMP 5.2}~\cite{openmp}
+for parallelism, and the \textbf{Roofline} model~\cite{roofline} to predict where speedup flattens.
+
+% ================================================================== 3
+\section{Existing Approaches versus RealFact}
+\label{sec:compare}
+
+\begin{table}[H]
+\centering\footnotesize
+\caption{Comparison with existing approaches. The last row is this project.}
+\label{tab:compare}
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabularx}{\linewidth}{P{2.25cm}YYYYP{1.4cm}YY}
+\toprule
+\textbf{System} & \textbf{Evidence} & \textbf{Up to date} & \textbf{Retrieval} & \textbf{Duplicate handling} & \textbf{Verdicts} & \textbf{Conflicting evidence} & \textbf{Parallel perf.\ reported}\\
+\midrule
+Style-based classifiers & None (style) & --- & None & --- & Binary & \no & \no\\
+LIAR baselines & Claim + metadata & Static & None & --- & 6-way & \no & \no\\
+FEVER pipeline & Wikipedia & Static dump & Doc + sentence top-$k$ & None & 3-way & Folded into NEI & Accuracy only\\
+HoVer / IMRRF & Wikipedia, multi-hop & Static dump & Iterative multi-hop & None & 2--3-way & \no & Accuracy only\\
+\rowcolor{novelsoft}\textbf{RealFact} & Live multi-outlet news & \yes{} (RSS) & Exact OpenMP scan, top-$M$ & Cluster at $\tau$, $1+\lambda\log_2 n$ & 4-way, cited & \yes{} (first-class) & \yes{} (speedup, $E_p$, p95, Wilcoxon)\\
+\bottomrule
+\end{tabularx}
+\end{table}
+Four differences can be observed directly in the running application:
+\begin{enumerate}
+  \item \textbf{Retrieve wide, then cluster.} Existing pipelines keep the top-$K$ articles. If ten outlets
+  syndicate one report and $K=10$, those slots hold one story, and clustering after truncation leaves nine
+  empty. RealFact clusters the $M=10{,}000$ pool first and then keeps the top-$K$ \emph{clusters}.
+  \item \textbf{Independence weighting.} $n$ copies count as $1+\lambda\log_2 n$ votes. With $\lambda=0.5$,
+  16 copies count as 3 votes, not 16 (Figure~\ref{fig:weights}).
+  \item \textbf{Four-way verdict.} Disagreement between independent sources is reported, not forced into a binary label.
+  \item \textbf{Measured parallel retrieval.} The scan is timed on a disclosed platform and must return
+  bit-identical IDs to a serial build.
+\end{enumerate}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}
+\begin{axis}[width=0.62\linewidth,height=5.2cm,xlabel={syndicated copies $n$},ylabel={votes $w$},
+  xmode=log,log basis x=2,xtick={1,2,4,8,16,32},xticklabels={1,2,4,8,16,32},
+  legend pos=north west,legend style={font=\scriptsize,draw=none,fill=none},grid=major,grid style={black!8},
+  tick label style={font=\scriptsize},label style={font=\small}]
+\addplot[con,thick,mark=*,mark size=1.4pt] coordinates {(1,1)(2,2)(4,4)(8,8)(16,16)(32,32)};
+\addlegendentry{naive ($w=n$)}
+\addplot[novel,very thick,mark=square*,mark size=1.4pt] coordinates {(1,1)(2,1.5)(4,2)(8,2.5)(16,3)(32,3.5)};
+\addlegendentry{RealFact ($\lambda=0.5$)}
+\addplot[inkthree,dashed,thick] coordinates {(1,1)(32,1)};
+\addlegendentry{one vote ($\lambda=0$)}
+\end{axis}
+\end{tikzpicture}
+\caption{Cluster weight as a function of the number of syndicated copies.}
+\label{fig:weights}
+\end{figure}
+
+% ================================================================== 4
+\section{Datasets}
+\label{sec:data}
+
+\begin{table}[H]
+\centering\small
+\caption{Datasets and their roles.}
+\label{tab:datasets}
+\begin{tabularx}{\linewidth}{P{2.1cm}P{3.4cm}P{3.6cm}Y}
+\toprule
+\textbf{Dataset} & \textbf{Role} & \textbf{Size} & \textbf{Labels mapped to 3-way}\\
+\midrule
+FEVER & Verification quality (train/tune) & 185,445 claims (145,449 / 19,998 / 19,998) & SUPPORTED$\to$SUPPORT, REFUTED$\to$CONTRADICT, NEI$\to$NEUTRAL\\
+LIAR & Generalisation to short political claims & 12,836 statements, 80/10/10 & true, mostly-true$\to$SUPPORT; false, pants-fire$\to$CONTRADICT; half-true, barely-true$\to$NEUTRAL\\
+FakeNewsNet & Real-world news; only source of syndication & 23,196 items, 70/10/20 grouped by duplicate cluster & Headline as claim; real$\to$SUPPORT, fake$\to$CONTRADICT; also merged not-supported\\
+Live corpus & Unlabelled evidence pool searched by the engine & 1,759 articles from 21 outlets at report time; synthetic up to 500K for scaling & Title, lead, timestamp, source domain\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\paragraph{Label harmonisation.} System verdicts map to the three-way benchmark labels as
+Supported $\to$ SUPPORT, Contradicted $\to$ CONTRADICT, and both Unverified and Conflicting
+Evidence $\to$ NEUTRAL. The two are also reported separately, because collapsing them hides the behaviour the
+independence filter is meant to produce.
+
+\paragraph{Preprocessing.} HTML and boilerplate are stripped, whitespace is normalised, and non-English items
+are dropped. Each article is hashed on (source domain, normalised headline) as a cheap exact-duplicate filter
+before embedding. Claims and articles are encoded with BGE-small-en-v1.5 into 384-dimensional unit vectors.
+Article embeddings are computed once at ingestion and cached. RSS supplies a headline and a lead paragraph
+only; we never scrape article pages. Because BGE truncates at 512 tokens, an article is represented by its
+lead in any case, which also helps syndication detection, since syndicated copies share leads.
+
+\paragraph{Leakage control.} For any claim drawn from a labelled benchmark, the source article and any article
+sharing its deduplication key are excluded from the scan through the engine's exclusion mask.
+
+% ================================================================== 5
+\section{System Design}
+\label{sec:design}
+
+\subsection{Architecture}
+Figure~\ref{fig:pipeline} shows the end-to-end pipeline. Phase~1 builds the evidence index at ingestion
+time. Phase~2 verifies a claim. A separate benchmarking arm times the retrieval kernel only, so the systems
+claim and the accuracy claim can be falsified independently.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  box/.style={draw,rounded corners=3pt,align=center,font=\scriptsize,minimum height=1.05cm,text width=2.2cm,fill=black!3},
+  nov/.style={box,fill=novelsoft,draw=novel,line width=0.9pt},
+  arr/.style={-{Stealth[length=2mm]},thick,inkthree},
+  lab/.style={font=\scriptsize\bfseries,inkthree,anchor=west}]
+% phase 1
+\node[lab] at (-1.2,1.15) {PHASE 1: BUILD THE EVIDENCE INDEX};
+\node[box] (f) at (0,0) {Live RSS feeds\\+ benchmarks};
+\node[box,right=0.5cm of f] (p) {Clean, filter,\\exact-dup hash};
+\node[box,right=0.5cm of p] (e) {BGE embed\\(small-en-v1.5)\\$d=384$};
+\node[box,right=0.5cm of e] (m) {Cached $N\times384$\\float32 matrix};
+\draw[arr] (f)--(p); \draw[arr] (p)--(e); \draw[arr] (e)--(m);
+% phase 2
+\node[lab] at (-1.2,-1.45) {PHASE 2: VERIFY};
+\node[box] (c) at (0,-2.5) {Input claim\\embed $\to q$};
+\node[nov,right=0.5cm of c] (s) {OpenMP exact scan\\$s_i=q^\top v_i$, top-$M$};
+\node[nov,right=0.5cm of s] (k) {Cluster at $\tau$\\$\to$ top-$K$ clusters};
+\node[box,right=0.5cm of k] (n) {NLI per cluster\\representative};
+\draw[arr] (c)--(s); \draw[arr] (s)--(k); \draw[arr] (k)--(n);
+\node[nov,below=0.55cm of n] (a) {Weighted aggregation\\$w_c=1+\lambda\log_2 n_c$};
+\node[nov,left=0.5cm of a] (v) {Cited 4-way\\verdict};
+\draw[arr] (n)--(a); \draw[arr] (a)--(v);
+\draw[arr,dashed] (m.south) -- ++(0,-0.32) -| (s.north);
+% bench arm
+\node[box,dashed,below=0.55cm of c,fill=white] (b) {Benchmarking arm\\(timing only): 3 schedules $\times$ 1--16 thr. $\times$ 1.7K--500K};
+\draw[arr,dashed] (s.south) |- (b.east);
+\end{tikzpicture}
+\caption{RealFact pipeline. Blue stages are this project's novel contributions.}
+\label{fig:pipeline}
+\end{figure}
+
+\subsection{Retrieval}
+Let the corpus be $\{a_i\}_{i=1}^N$ with cached unit-normalised embeddings $v_i\in\mathbb{R}^{384}$, and let the
+claim embed to $q$ (BGE's retrieval instruction prefix is prepended to the claim). Because all vectors are
+unit-normalised, cosine similarity reduces to a dot product:
+\begin{equation}
+  s_i = \cos(q, v_i) = q^\top v_i .
+\end{equation}
+The scan is exhaustive and exact. We deliberately use brute force rather than an approximate (ANN) index,
+because an ANN index would change \emph{what} is retrieved between configurations and mix a recall change into
+the speedup measurement. Candidates below a relevance floor (cosine $< 0.68$ by default) are not treated as
+evidence (Section~\ref{sec:floor}).
+
+\subsection{Retrieve-wide duplicate clustering}
+The scan returns the top $M$ candidates with $M \gg K$ (default $M = 10{,}000$, $K = 10$). These are clustered
+by single-pass leader clustering in score order (Algorithm~\ref{alg:cluster}). Only then are the top-$K$
+clusters kept, and each cluster's highest-scoring member becomes its representative. The order of operations
+is the important detail: clustering after truncating to $K$ would let copies of one story fill all $K$ slots.
+
+\begin{algorithm}[H]
+\caption{Retrieve-wide greedy clustering}
+\label{alg:cluster}
+\small
+\begin{algorithmic}[1]
+\Require candidate vectors $V_1,\dots,V_m$ sorted by score (best first), threshold $\tau$, cluster budget $K$
+\State $L \gets [\,]$ \Comment{leaders}
+\For{$j = 1$ \textbf{to} $m$}
+  \If{$L \neq \emptyset$ \textbf{and} $\max_{\ell\in L} V_\ell^\top V_j > \tau$}
+     \State assign $j$ to $\arg\max_{\ell\in L} V_\ell^\top V_j$
+  \ElsIf{$|L| < K$}
+     \State $L \gets L \cup \{j\}$; open a new cluster led by $j$
+  \Else
+     \State leave $j$ unassigned \Comment{belongs to a story outside the top $K$}
+  \EndIf
+\EndFor
+\State \Return clusters with sizes $n_c$ (after the $K$ leaders are found, the remaining assignment is one matrix product)
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Independence-weighted aggregation}
+\label{sec:agg}
+A 3-way NLI cross-encoder labels each cluster representative $r_c$ against the claim, with the article as
+premise and the claim as hypothesis. This gives a signed stance $\sigma_c\in\{+1,-1,0\}$ for
+SUPPORT/CONTRADICT/NEUTRAL and a confidence $p_c\in[0,1]$. A cluster of $n_c$ syndicated copies is not $n_c$
+independent witnesses, and not exactly one either, so its weight interpolates between the two:
+\begin{equation}
+  w_c = 1 + \lambda\log_2 n_c,\qquad \lambda\in[0,1].
+\end{equation}
+The net signed stance $S$ and the supporting share of non-neutral weight $D$ are
+\begin{equation}
+  S = \frac{\sum_c w_c p_c \sigma_c}{\sum_c w_c p_c},\qquad
+  D = \frac{\sum_{c:\sigma_c=+1} w_c p_c}{\sum_{c:\sigma_c\neq 0} w_c p_c}.
+\end{equation}
+
+\begin{table}[H]
+\centering\small
+\caption{Four-way verdict rule (conditions checked top to bottom).}
+\label{tab:verdict}
+\begin{tabular}{ll}
+\toprule
+\textbf{Condition} & \textbf{Verdict}\\
+\midrule
+$\sum_{c:\sigma_c\neq0} w_c p_c < \theta$ & Unverified\\
+$\delta < D < 1-\delta$ & Conflicting Evidence\\
+$S \ge 0$ otherwise & Supported\\
+$S < 0$ otherwise & Contradicted\\
+\bottomrule
+\end{tabular}
+\end{table}
+\noindent Defaults: $\tau=0.90$, $\lambda=0.5$, $\theta=0.6$, $\delta=0.25$, relevance floor $0.68$. All are
+adjustable from the user interface.
+
+\subsection{Parallelisation strategy}
+\label{sec:par}
+The scan is parallelised with \texttt{\#pragma omp parallel for schedule(runtime)} over the corpus index, so the
+schedule kind and chunk size are run-time parameters. Each thread keeps a private top-$M$ min-heap, aligned and
+padded to a 64-byte cache line to prevent false sharing on heap metadata. Embeddings are one contiguous
+row-major $N\times384$ float32 array, so each thread's chunk is a unit-stride stream. Ties are broken by index,
+which makes the result a strict total order and the returned IDs deterministic.
+
+\begin{lstlisting}[language=C++,caption={Core of the parallel kernel (\texttt{engine/realfact\_engine.cpp}).},label={lst:kernel}]
+struct alignas(64) LocalHeap { std::vector<Hit> h; /* + padding */ };
+
+#pragma omp parallel num_threads(threads)
+{
+    LocalHeap& mine = heaps[omp_get_thread_num()];
+    #pragma omp for schedule(runtime) nowait
+    for (int64_t i = 0; i < N; ++i) {
+        if (exclude && exclude[i]) continue;            // leakage control
+        mine.push(Hit{dot(q, emb + i * d, d), i}, M);    // thread-local top-M
+    }
+}
+// Serial reduction, independent of N: concatenate P heaps, nth_element, sort.
+\end{lstlisting}
+
+The same source file is compiled twice: once with OpenMP (\texttt{librealfact\_omp}) and once without
+(\texttt{librealfact\_serial}). The serial build is the reference $T_1$, so OpenMP runtime overhead is not
+charged to the baseline.
+
+\paragraph{Merge refinement.} The methodology specified a heap merge of the $P$ local heaps, costing
+$O(PM\log M)$. At 16 threads and $M=10{,}000$ this serial step (160K heap pushes) limited speedup, as Amdahl's
+law predicts. We replaced it with concatenate~+~\texttt{nth\_element}~+~sort, costing $O(PM + M\log M)$. Because
+the comparison is a strict total order, the output is identical. At $N=500$K, guided with 16 threads went from
+11.46\,ms to 9.48\,ms median.
+
+% ================================================================== 6
+\section{Implementation}
+\label{sec:impl}
+
+\begin{table}[H]
+\centering\small
+\caption{Code layout.}
+\label{tab:code}
+\begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{4.9cm}Y}
+\toprule
+\textbf{File} & \textbf{Responsibility}\\
+\midrule
+\texttt{engine/realfact\_engine.cpp} & Exact top-$M$ scan; OpenMP and serial builds; C ABI used through \texttt{ctypes}.\\
+\texttt{backend/ingest.py} & Phase 1: fetch 42 RSS feeds in parallel, clean, filter, hash, embed, append.\\
+\texttt{backend/store.py} & SQLite metadata + contiguous embedding file; row $i$ = article id $i$.\\
+\texttt{backend/models.py} & BGE-small-en-v1.5 embedder; NLI cross-encoder (\texttt{nli-deberta-v3-xsmall}).\\
+\texttt{backend/pipeline.py} & Phase 2, ablations, and the syndication stress test.\\
+\texttt{backend/bench.py} & Benchmarking arm, platform disclosure, exact Wilcoxon signed-rank test.\\
+\texttt{eval/run\_eval.py} & FEVER / LIAR / FakeNewsNet harness with label mapping and leakage control.\\
+\texttt{backend/app.py}, \texttt{web/} & Flask API and the single-page interface (seven tabs).\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Engineering issues encountered}
+\begin{itemize}
+  \item \textbf{OpenMP on macOS.} Apple clang ships no OpenMP runtime. We link against a prebuilt LLVM libomp
+  19.1.5 in \texttt{third\_party/libomp} (libomp 17 lacked a symbol clang 21 emits).
+  \item \textbf{Two OpenMP runtimes in one process.} PyTorch ships its own libomp. If PyTorch initialises first,
+  our runtime crashes on its first parallel region. The engine libraries are therefore loaded at package import,
+  before any PyTorch import.
+  \item \textbf{Benchmark isolation.} An early sweep overlapped with feed ingestion (embedding with PyTorch) and
+  showed CPU utilisation above 100\% for one thread. Benchmarks and ingestion now share a lock and never run
+  together.
+  \item \textbf{Thread pinning.} macOS exposes no thread-affinity API, so \texttt{OMP\_PROC\_BIND} and
+  \texttt{OMP\_PLACES} have no effect. We disclose this instead of claiming pinned results.
+\end{itemize}
+
+\subsection{Relevance floor}
+\label{sec:floor}
+While testing we found that NLI models label off-topic premises as ``contradiction''. For the claim
+\emph{``The Earth is flat''}, an article about a Martian meteorite was labelled CONTRADICT with $p=1.00$. A larger
+model trained on MNLI, FEVER and ANLI showed the same behaviour, so the cause is input relevance, not model size.
+We therefore gate evidence by a relevance floor before NLI. With the floor at 0.68 the highest-scoring article
+for that claim (cosine 0.649) is excluded, and the verdict becomes \emph{Unverified}, which is correct for a
+news corpus that does not discuss the claim.
+
+\subsection{User interface}
+The interface has seven tabs: \emph{Verify a claim} (verdict, $S$ and $D$ meter, per-stage timings, an
+existing-vs-RealFact verdict table, and cited evidence cards with a ``Simulate syndication $\times$10''
+button); \emph{What we learned (survey)}; \emph{Existing vs RealFact}; \emph{Methodology};
+\emph{Parallel benchmark} (run sweeps, charts, expected-vs-observed table, platform disclosure); \emph{Live
+corpus}; and \emph{Evaluation}.
+
+% ================================================================== 7
+\section{Experimental Setup}
+\label{sec:setup}
+
+\begin{table}[H]
+\centering\small
+\caption{Platform disclosure.}
+\label{tab:platform}
+\begin{tabularx}{\linewidth}{lY}
+\toprule
+CPU & Apple M3 Pro, 11 cores (5 performance + 6 efficiency), no SMT\\
+Caches & L1d 64\,KB; L2 16\,MB (performance cluster), 4\,MB (efficiency cluster)\\
+Memory & 18\,GB unified (19,327,352,832 bytes)\\
+Compiler & Apple clang 21.0.0, \texttt{-O3 -std=c++17 -ffp-contract=off}; serial build without \texttt{-fopenmp}\\
+OpenMP runtime & LLVM libomp 19.1.5; max 11 threads\\
+Pinning & Not available on macOS (\texttt{OMP\_PROC\_BIND}/\texttt{OMP\_PLACES} unset and not honoured)\\
+Models & BAAI/bge-small-en-v1.5 (384-d); cross-encoder/nli-deberta-v3-xsmall; CPU inference\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\paragraph{Protocol.} Schedules static, dynamic and guided (default chunk) at 1, 2, 4, 8 and 16 threads, on the
+live corpus ($N=1{,}725$ at benchmark time) and synthetic corpora of 10K, 50K, 100K and 500K random unit vectors.
+Retrieval cost depends only on $N\times d$, not on the text, so synthetic vectors are valid for timing. $M=10{,}000$
+(or $N$ if smaller). Each configuration runs 2 discarded warm-ups and 11 timed queries; we report the median, IQR
+and p95. Queries are the same 11 per configuration, so latencies are paired, and schedules are compared with an
+exact two-sided Wilcoxon signed-rank test. For every query in every configuration, the returned IDs are compared
+with the serial build's.
+
+\paragraph{Roofline expectation.} The kernel performs 2 flops per 4-byte element loaded (0.5 flop/byte), placing
+it in the memory-bound region of the roofline. The working set at $N=500$K is $500{,}000\times384\times4$\,B
+$=768$\,MB, far beyond any cache.
+
+% ================================================================== 8
+\section{Results}
+
+\subsection{Parallel performance}
+\label{sec:resperf}
+This subsection reports the original kernel (\emph{v1}). Section~\ref{sec:opt} reports the optimised kernel
+(\emph{v2}) and compares the two.
+
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}
+\begin{groupplot}[group style={group size=2 by 1,horizontal sep=1.6cm},
+  width=0.47\linewidth,height=5.6cm,xlabel={threads $p$},xtick={1,2,4,8,16},xmin=0,xmax=17,
+  grid=major,grid style={black!8},tick label style={font=\scriptsize},label style={font=\small},
+  legend style={font=\scriptsize,draw=none,fill=white,fill opacity=0.8,text opacity=1}]
+\nextgroupplot[ylabel={speedup $S_p=T_1/T_p$},ymin=0,ymax=17,legend pos=north west]
+\addplot[novel,thick,mark=square*,mark size=1.5pt] coordinates {(1,1.00)(2,1.81)(4,3.16)(8,3.57)(16,3.78)}; \addlegendentry{static}
+\addplot[con,thick,mark=triangle*,mark size=1.8pt] coordinates {(1,0.99)(2,1.13)(4,1.25)(8,1.20)(16,1.16)}; \addlegendentry{dynamic}
+\addplot[sup,thick,mark=*,mark size=1.5pt] coordinates {(1,1.00)(2,1.81)(4,3.17)(8,4.25)(16,4.61)}; \addlegendentry{guided}
+\addplot[inkthree,dashed] coordinates {(1,1)(16,16)}; \addlegendentry{ideal}
+\nextgroupplot[ylabel={efficiency $E_p=S_p/p$ (\%)},ymin=0,ymax=110,legend pos=north east]
+\addplot[novel,thick,mark=square*,mark size=1.5pt] coordinates {(1,100)(2,90)(4,79)(8,45)(16,24)}; \addlegendentry{static}
+\addplot[con,thick,mark=triangle*,mark size=1.8pt] coordinates {(1,99)(2,57)(4,31)(8,15)(16,7)}; \addlegendentry{dynamic}
+\addplot[sup,thick,mark=*,mark size=1.5pt] coordinates {(1,100)(2,91)(4,79)(8,53)(16,29)}; \addlegendentry{guided}
+\end{groupplot}
+\end{tikzpicture}
+\caption{Speedup and parallel efficiency at $N=500{,}000$ ($T_1 = 43.68$\,ms, non-OpenMP serial build).}
+\label{fig:speedup}
+\end{figure}
+
+\begin{table}[H]
+\centering\small
+\caption{Retrieval kernel at $N=500{,}000$, $M=10{,}000$. Median and IQR over 11 runs. $^*$ more threads than physical cores.}
+\label{tab:500k}
+\begin{tabular}{lrrrrrrrc}
+\toprule
+\textbf{Schedule} & \textbf{$p$} & \textbf{Median ms} & \textbf{IQR} & \textbf{p95} & \textbf{$S_p$} & \textbf{$E_p$} & \textbf{q/s} & \textbf{IDs = serial}\\
+\midrule
+serial (no OpenMP) & 1 & 43.677 & 0.528 & --- & 1.00 & --- & 23 & ---\\
+\midrule
+static  & 1  & 43.758 & 2.136 & 48.587 & 1.00 & 100\% & 23 & \checkmark\\
+static  & 2  & 24.190 & 0.085 & 24.414 & 1.81 & 90\%  & 41 & \checkmark\\
+static  & 4  & 13.811 & 0.137 & 13.987 & 3.16 & 79\%  & 72 & \checkmark\\
+static  & 8  & 12.233 & 0.459 & 13.347 & 3.57 & 45\%  & 82 & \checkmark\\
+static  & 16$^*$ & 11.553 & 1.043 & 14.341 & 3.78 & 24\% & 87 & \checkmark\\
+\midrule
+dynamic & 1  & 43.998 & 0.148 & 44.302 & 0.99 & 99\%  & 23 & \checkmark\\
+dynamic & 2  & 38.555 & 0.396 & 39.330 & 1.13 & 57\%  & 26 & \checkmark\\
+dynamic & 4  & 34.986 & 0.241 & 35.671 & 1.25 & 31\%  & 29 & \checkmark\\
+dynamic & 8  & 36.304 & 0.187 & 36.554 & 1.20 & 15\%  & 28 & \checkmark\\
+dynamic & 16$^*$ & 37.609 & 0.199 & 38.061 & 1.16 & 7\% & 27 & \checkmark\\
+\midrule
+guided  & 1  & 43.878 & 0.257 & 44.072 & 1.00 & 100\% & 23 & \checkmark\\
+guided  & 2  & 24.081 & 0.087 & 24.242 & 1.81 & 91\%  & 42 & \checkmark\\
+guided  & 4  & 13.793 & 0.145 & 14.337 & 3.17 & 79\%  & 73 & \checkmark\\
+guided  & 8  & 10.289 & 0.354 & 11.332 & 4.25 & 53\%  & 97 & \checkmark\\
+guided  & 16$^*$ & \textbf{9.481} & 0.401 & 9.991 & \textbf{4.61} & 29\% & \textbf{105} & \checkmark\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}
+\begin{groupplot}[group style={group size=2 by 1,horizontal sep=1.6cm},
+  width=0.47\linewidth,height=5.6cm,xlabel={corpus size $N$},xmode=log,
+  xtick={1725,10000,50000,100000,500000},xticklabels={1.7K,10K,50K,100K,500K},
+  xticklabel style={rotate=45,anchor=north east,font=\tiny},
+  grid=major,grid style={black!8},tick label style={font=\scriptsize},label style={font=\small},
+  legend style={font=\scriptsize,draw=none,fill=white,fill opacity=0.8,text opacity=1}]
+\nextgroupplot[ylabel={median latency (ms), 16 threads},ymode=log,legend pos=north west]
+\addplot[inkthree,dashed,thick,mark=o,mark size=1.4pt] coordinates {(1725,0.224)(10000,1.474)(50000,5.875)(100000,10.597)(500000,43.677)}; \addlegendentry{serial $T_1$}
+\addplot[novel,thick,mark=square*,mark size=1.5pt] coordinates {(1725,0.168)(10000,0.757)(50000,1.696)(100000,3.075)(500000,11.553)}; \addlegendentry{static}
+\addplot[con,thick,mark=triangle*,mark size=1.8pt] coordinates {(1725,0.249)(10000,1.219)(50000,4.331)(100000,8.016)(500000,37.609)}; \addlegendentry{dynamic}
+\addplot[sup,thick,mark=*,mark size=1.5pt] coordinates {(1725,0.147)(10000,0.742)(50000,1.635)(100000,2.746)(500000,9.481)}; \addlegendentry{guided}
+\nextgroupplot[ylabel={best speedup over serial},ymin=0,ymax=5.2,legend pos=north west]
+\addplot[novel,thick,mark=square*,mark size=1.5pt] coordinates {(1725,1.70)(10000,1.95)(50000,3.46)(100000,3.45)(500000,3.78)}; \addlegendentry{static (best $p$)}
+\addplot[sup,thick,mark=*,mark size=1.5pt] coordinates {(1725,1.71)(10000,2.03)(50000,3.59)(100000,3.86)(500000,4.61)}; \addlegendentry{guided (best $p$)}
+\end{groupplot}
+\end{tikzpicture}
+\caption{Corpus scaling. Left: median latency at 16 threads (log--log). Right: best speedup per schedule at each corpus size.}
+\label{fig:scaling}
+\end{figure}
+
+\begin{table}[H]
+\centering\small
+\caption{Exact Wilcoxon signed-rank tests on paired per-query latencies at 16 threads ($n=11$). With $n=11$ the smallest attainable two-sided $p$ is $9.8\times10^{-4}$. $r=|z|/\sqrt{n}$.}
+\label{tab:wilcoxon}
+\begin{tabular}{lcccc}
+\toprule
+& \multicolumn{2}{c}{\textbf{static vs dynamic}} & \multicolumn{2}{c}{\textbf{static vs guided}}\\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+\textbf{Corpus} & $p$ & $r$ & $p$ & $r$\\
+\midrule
+live (1,725) & $9.8\times10^{-4}$ & 0.88 & 0.083 & 0.54\\
+10K  & $9.8\times10^{-4}$ & 0.88 & 0.147 & 0.46\\
+50K  & $9.8\times10^{-4}$ & 0.88 & 1.000 & 0.00\\
+100K & $9.8\times10^{-4}$ & 0.88 & 0.0068 & 0.78\\
+500K & $9.8\times10^{-4}$ & 0.88 & $9.8\times10^{-4}$ & 0.88\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Correctness.} Across all 5 corpus sizes $\times$ 15 configurations $\times$ 11 queries, the returned
+article IDs were bit-identical to the serial build in every case. Parallelisation changes how retrieval is
+computed, not what is retrieved.
+
+\paragraph{OpenMP entry cost.} The 1-thread OpenMP build minus the non-OpenMP build was $+0.024$\,ms on the live
+corpus and within run-to-run noise ($-0.43$ to $+0.20$\,ms) at larger sizes.
+
+\subsection{Expected versus observed}
+\begin{table}[H]
+\centering\small
+\caption{Predictions from the methodology checked against measurements.}
+\label{tab:expected}
+\begin{tabularx}{\linewidth}{P{0.36\linewidth}Y}
+\toprule
+\textbf{Prediction} & \textbf{Observed}\\
+\midrule
+Near-linear speedup at 1--4 threads, then flattening at the memory-bandwidth ceiling before cores run out. &
+\textbf{Confirmed.} 79\% efficiency at 4 threads, then gains slow sharply. At 16 threads (guided) the kernel reads 768\,MB in 9.48\,ms, about 81\,GB/s, against 17.6\,GB/s single-threaded. The flattening begins before all 11 cores are used, as the 0.5 flop/byte roofline predicts.\\
+\addlinespace
+Static wins, because every article costs the same 384-d dot product. &
+\textbf{Not confirmed on this machine.} Guided beats static at 8 and 16 threads ($p=9.8\times10^{-4}$ at 500K). The methodology anticipated this case: a dynamic or guided advantage indicates an external imbalance source. On the M3 Pro that source is the mix of 5 performance and 6 efficiency cores. Static gives every core an equal share, so the slow cores finish last. Guided rebalances. Dynamic with the default chunk of 1 pays an atomic counter increment per article and is the slowest by a wide margin.\\
+\addlinespace
+A visible step where the working set leaves the cache. &
+Throughput per article drops between 10K (15\,MB, within the 16\,MB L2) and 50K (77\,MB). Above that, scaling is close to linear in $N$.\\
+\addlinespace
+OpenMP entry cost is small and charged separately. &
+Confirmed: about 0.02\,ms, within noise at larger corpora.\\
+\addlinespace
+Small corpora gain little. &
+Confirmed: at $N=1{,}725$ the scan takes 0.22\,ms serially and the best speedup is $1.7\times$. Thread start-up is comparable to the work.\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Independence filter: controlled syndication test}
+\label{sec:case}
+To exercise the independence filter on a real claim, the application can republish one real article as $n$
+near-identical copies (cosine $\approx 0.99$) under clearly labelled simulated outlets, for a single query. The
+copies are appended to the matrix that the OpenMP kernel scans, so the whole pipeline runs on them; nothing is
+written to the stored corpus.
+
+\paragraph{Claim:} \emph{``Kuwait-flagged tanker with 21 Indian seafarers hit near Strait of Hormuz, crew safe''.}
+Without syndication, four independent clusters were retrieved: one SUPPORT (indianexpress.com, $p=0.97$), two
+NEUTRAL (cnbc.com), and one CONTRADICT (euronews.com, $p=0.80$, reporting three tankers on fire). The
+verdict was \emph{Conflicting Evidence} ($S=0.04$, $D=0.55$). We then republished the contradicting
+euronews.com article $\times10$.
+
+\begin{table}[H]
+\centering\small
+\caption{Same retrieval and NLI after syndicating the contradicting article $\times10$; only the aggregation rule differs.}
+\label{tab:case}
+\begin{tabular}{lcrrr}
+\toprule
+\textbf{Aggregation rule} & \textbf{Verdict} & $S$ & $D$ & \textbf{Votes $\sum w$}\\
+\midrule
+\rowcolor{novelsoft}RealFact, log-weighted ($\lambda=0.5$) & \textcolor{conf}{\textbf{Conflicting Evidence}} & $-0.22$ & 0.31 & 6.2\\
+One vote per cluster ($\lambda=0$) & \textcolor{conf}{Conflicting Evidence} & $0.04$ & 0.55 & 4.0\\
+Naive duplicate counting & \textcolor{con}{Contradicted} & $-0.62$ & 0.10 & 15.0\\
+Filter off: raw top-$K$ articles & \textcolor{con}{Contradicted} & $-0.56$ & 0.14 & 10.0\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+One euronews.com report, copied ten times, outvotes the independent supporting report under naive counting
+and under plain top-$K$ retrieval, and both flip to \emph{Contradicted}. RealFact counts the 11-article cluster
+as $1+0.5\log_2 11 = 2.73$ votes. The contradicting side moves $D$ from 0.55 to 0.31, which is still inside the
+disagreement band, so the verdict remains \emph{Conflicting Evidence}. The retrieve-wide rule also matters: in the
+same run, truncating to $K=10$ before clustering would have kept only 4 independent stories and wasted 6 of the
+10 slots on copies.
+
+On unmodified live data the four rules agreed on every claim we tested, because cross-outlet reports of the same
+event score around 0.75--0.88 and stay below $\tau=0.90$. They are independent reports, not syndicated copies.
+This is the expected control result: a filter that changed verdicts without syndication would be removing genuine
+evidence.
+
+\subsection{Verification quality on LIAR}
+\label{sec:liar}
+We ran the evaluation harness on the official LIAR test split. 1,267 of its 1,283 statements carry one of the six
+labels. Each claim was verified against the live corpus (1,725 articles) with leakage control.
+
+\begin{table}[H]
+\centering\small
+\caption{LIAR test split (3-way mapping). All four aggregation rules produced identical results.}
+\label{tab:liar}
+\begin{tabular}{lrrrrr}
+\toprule
+\textbf{Mode} & \textbf{Accuracy} & \textbf{Macro F1} & \textbf{F1 SUP} & \textbf{F1 CON} & \textbf{F1 NEU}\\
+\midrule
+RealFact (any aggregation rule) & 37.6\% & 0.188 & 0.000 & 0.017 & 0.546\\
+Majority class (always NEUTRAL) & 37.6\% & --- & --- & --- & ---\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Verdicts were 1,255 Unverified (99.1\%) and 12 Contradicted. On the middle band (half-true, barely-true) they were
+473 Unverified and 4 Contradicted. Median end-to-end latency was 7.8\,ms per claim (p95 22.5\,ms). It is low because
+NLI runs only when evidence clears the relevance floor.
+
+\paragraph{Interpretation.} LIAR's statements date from 2007--2016, while the evidence pool is a few days of
+current news. Almost no claim has relevant evidence, so the system correctly answers \emph{Unverified} instead of
+guessing, and accuracy equals the majority-class baseline. This run measures corpus coverage, not reasoning
+quality. The methodology expected LIAR to score lowest. The identical results across aggregation rules are the
+expected control, since LIAR contains no syndicated copies. A meaningful accuracy comparison needs an evidence pool
+matched to the dataset: FakeNewsNet's articles, or the FEVER Wikipedia dump (about 5.4M documents) indexed into
+the same engine.
+
+\subsection{End-to-end latency}
+For a typical claim on the live corpus (\emph{``Ukraine says at least 13 killed in Russian attack on train
+station''}), stage times were: claim embedding 8.1\,ms, OpenMP scan 0.2\,ms, clustering 0.1\,ms, NLI on the
+representatives 89.3\,ms, aggregation 0.1\,ms, and 98.2\,ms in total. At the current corpus size NLI dominates. The
+scan becomes the significant cost at hundreds of thousands of articles, where it reaches 9.5--44\,ms per query.
+
+% ================================================================== 9
+\section{Verification and Course-Driven Optimisations}
+\label{sec:opt}
+
+This section first verifies the system's correctness. It then improves the retrieval kernel with techniques from
+the Parallel Computing course and measures each change. All v2 numbers come from the benchmark run finished at
+2026-10-31 18:53:49, with the same protocol as Section~\ref{sec:setup}.
+
+\subsection{Correctness test suite}
+\begin{table}[H]
+\centering\small
+\caption{Correctness checks (\texttt{tests/test\_correctness.py}; also runnable from the Benchmark tab). All 12 pass on v1 and v2.}
+\label{tab:tests}
+\begin{tabularx}{\linewidth}{P{4.6cm}Y}
+\toprule
+\textbf{Check} & \textbf{What it verifies}\\
+\midrule
+Engine vs NumPy & 45 schedule $\times$ thread $\times$ chunk configurations return the exact top-$M$ against a float64 reference.\\
+Bit-exactness & 36 parallel runs at $M=10{,}000$: IDs and scores identical to the non-OpenMP build.\\
+Exact ties & A 40-way tie (duplicated rows) comes back in ascending index order under every schedule.\\
+Edge cases & $M>N$, $M=1$, $N=1$, $N=0$, more threads than rows, and $d\in\{1,3,17,383,385\}$ (remainder loops).\\
+Leakage mask & 1,003 masked rows are never returned, and the result equals the top-$M$ of the unmasked rows.\\
+Batched kernel & The multi-query kernel returns, for each query, exactly the single-query result.\\
+Row accounting & Per-thread row counts sum to $N$ under every schedule: no row is skipped or scanned twice.\\
+Aggregation & $S$, $D$ and the verdict table on hand-computed cases, including the syndication case study.\\
+Clustering & Leader clustering groups copies, respects $K$, and leaves stories beyond $K$ unassigned.\\
+Wilcoxon test & Exact $p$-values equal brute-force enumeration of all $2^n$ sign assignments.\\
+Ingestion & The duplicate key ignores case and punctuation but not the outlet; the English filter works.\\
+Label maps & LIAR and FEVER mappings match methodology \S I-B.\\
+\bottomrule
+\end{tabularx}
+\end{table}
+The suite found no defects in the v1 code. One input-validation weakness was fixed: a number field sending
+``10.0'' for $K$ used to raise an error.
+
+\subsection{Instruction-level parallelism in the dot product}
+Disassembling v1 showed that clang had vectorised the dot product into 4-lane NEON multiplies, but every row
+accumulated into a \emph{single} vector register. Each of the 96 vector additions per 384-d row had to wait for the
+previous one, a loop-carried dependency, so one core ran at floating-point-add \emph{latency}, not throughput.
+That is why v1's serial scan read only 17.6\,GB/s.
+
+v2 keeps 16 independent partial sums, which compile to four independent 4-lane registers, and reduces them with a
+fixed tree. The summation order is written out explicitly, so no \texttt{-ffast-math} reassociation is needed and
+the serial and OpenMP builds still agree bit for bit. We avoided \texttt{\#pragma omp simd reduction} for the same
+reason: it lets the compiler choose the reduction order, and the order could then differ between the two builds.
+We also tried FMA contraction (\texttt{-ffp-contract=on}). It stayed bit-exact but gave no measurable gain, because
+the kernel is memory-bound at that point, so we kept it off.
+
+\begin{table}[H]
+\centering\small
+\caption{Kernel v1 $\to$ v2 at $N=500{,}000$, $M=10{,}000$ (medians of 11 runs).}
+\label{tab:v1v2}
+\begin{tabular}{lrrr}
+\toprule
+& \textbf{v1} & \textbf{v2} & \textbf{change}\\
+\midrule
+Serial $T_1$ (no OpenMP) & 43.68\,ms & 16.82\,ms & 2.60$\times$ faster\\
+Single-core bandwidth & 17.6\,GB/s & 45.7\,GB/s & \\
+Best parallel time & 9.48\,ms (guided, 16T) & 8.04\,ms (static, 8T) & 1.18$\times$ faster\\
+Bandwidth at best & 81\,GB/s & 96\,GB/s & \\
+Speedup over own $T_1$ & 4.61$\times$ & 2.09$\times$ & lower\\
+Threads to reach 90\% of best & 16 & 4 & \\
+\bottomrule
+\end{tabular}
+\end{table}
+\noindent A second v1 run (18:17) gave $T_1=41.7$\,ms and best 10.5\,ms, an indication of run-to-run variance.
+
+\paragraph{Why speedup fell while time improved.} The faster core reaches the shared memory-bandwidth ceiling
+(about 96\,GB/s) with only 4 threads, so additional threads have nothing left to gain. This is the roofline in
+practice: optimising the serial code raised $T_1$'s performance, so speedup over $T_1$ shrank. Speedup only means
+something next to the baseline it is measured against, and we report both.
+
+\subsection{Karp--Flatt metric}
+The experimentally determined serial fraction $e = (1/S_p - 1/p)/(1 - 1/p)$ separates a fixed serial part
+(constant $e$, Amdahl) from overhead that grows with $p$ (rising $e$).
+
+\begin{table}[H]
+\centering\small
+\caption{Speedup and Karp--Flatt $e$ at $N=500{,}000$.}
+\label{tab:kf}
+\begin{tabular}{lcccccc}
+\toprule
+& \multicolumn{2}{c}{\textbf{v1 guided}} & \multicolumn{2}{c}{\textbf{v2 guided}} & \multicolumn{2}{c}{\textbf{v2 static}}\\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
+$p$ & $S_p$ & $e$ & $S_p$ & $e$ & $S_p$ & $e$\\
+\midrule
+2  & 1.81 & 0.105 & 1.56 & 0.278 & 1.57 & 0.271\\
+4  & 3.17 & 0.087 & 1.82 & 0.400 & 2.03 & 0.323\\
+8  & 4.25 & 0.126 & 1.85 & 0.476 & 2.09 & 0.403\\
+16 & 4.61 & 0.165 & 1.86 & 0.508 & 1.92 & 0.489\\
+\bottomrule
+\end{tabular}
+\end{table}
+In v2, $e$ rises steadily with $p$. The limit is therefore a contended shared resource (memory bandwidth), not a
+fixed serial section. The only serial code is the $P$-heap merge, which costs about 0.1\,ms. v1's $e$ stays small
+because its compute-bound core left bandwidth to spare.
+
+\subsection{Load balance on heterogeneous cores}
+v2 times each thread inside the worksharing loop (\texttt{rf\_topm\_stats}), using cache-line-padded per-thread
+counters so that the instrumentation cannot cause false sharing.
+
+\begin{table}[H]
+\centering\small
+\caption{Per-thread load balance at 11 threads (5 performance + 6 efficiency cores), $N=500{,}000$.}
+\label{tab:lb}
+\begin{tabular}{lrrrr}
+\toprule
+\textbf{Schedule} & \textbf{Kernel ms} & \textbf{max/mean busy} & \textbf{Idle} & \textbf{Rows per thread}\\
+\midrule
+static              & 9.14  & 1.12 & 11\% & 45,454--45,455\\
+dynamic (chunk 1)   & 39.99 & 1.01 & 1\%  & 40,489--51,814\\
+dynamic (chunk 4096)& 8.74  & 1.02 & 2\%  & 20,480--69,632\\
+guided              & \textbf{8.15} & 1.01 & 1\% & 31,554--58,761\\
+\bottomrule
+\end{tabular}
+\end{table}
+Static gives every thread an equal share of rows, so the threads that land on slower cores finish last and the rest
+sit idle for 11\% of the loop. Guided and chunked dynamic let faster cores take up to 1.9$\times$ more rows (last
+column), so all threads finish within 1--2\% of one another. Dynamic with chunk 1 is perfectly balanced but 4.9$\times$
+slower: it pays an atomic counter increment for every 384-float row, and that overhead grows relative to the work
+once the row itself becomes cheaper (v2).
+
+\subsection{Chunk-size sweep}
+\begin{table}[H]
+\centering\small
+\caption{Median kernel time (ms) by chunk size at 11 threads, $N=500{,}000$. Static: 8.32\,ms.}
+\label{tab:chunk}
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Chunk (rows)} & 1 & 16 & 256 & 4096 & 32768\\
+\midrule
+dynamic & 33.87 & 10.09 & 8.55 & 8.40 & \textbf{8.20}\\
+guided  & \textbf{8.14} & 8.26 & 8.77 & 8.41 & 9.01\\
+\bottomrule
+\end{tabular}
+\end{table}
+Dynamic needs chunks of at least about 256 rows to amortise scheduling. Guided performs well by default, because its
+chunks start large and shrink, and a large minimum chunk (32768) brings back tail imbalance.
+
+\subsection{Weak scaling (Gustafson)}
+With the work per thread fixed at 31,250 rows ($N = 31{,}250\,p$), ideal weak efficiency $T(1)/T(p)$ is 100\%.
+
+\begin{table}[H]
+\centering\small
+\caption{Weak scaling, 31,250 rows per thread.}
+\label{tab:weak}
+\begin{tabular}{lccccc}
+\toprule
+$p$ & 1 & 2 & 4 & 8 & 16\\
+\midrule
+static (ms / efficiency) & 2.42 / 100\% & 2.76 / 88\% & 3.01 / 81\% & 5.02 / 48\% & 9.33 / 26\%\\
+guided (ms / efficiency) & 2.43 / 100\% & 2.48 / 98\% & 2.80 / 87\% & 4.75 / 51\% & 9.34 / 26\%\\
+\bottomrule
+\end{tabular}
+\end{table}
+Weak efficiency stays high up to 4 threads and falls once the combined bandwidth demand exceeds the memory system.
+This is the same ceiling that limits strong scaling, so for a bandwidth-bound kernel Gustafson's law gives no escape.
+
+\subsection{Roofline: multi-query cache blocking}
+One query performs 2 flops per 4-byte float read, which is 0.5 flop/byte. v2 adds \texttt{rf\_topm\_batch}: each row
+is loaded once and scored against $Q$ queries while it is in L1. Inside, a register-blocked \texttt{dot4} scores four
+queries per row load. This raises arithmetic intensity to $0.5\,Q$ flop/byte. Each query keeps the exact summation
+order of the single-query dot product, so batched results are bit-identical, and the test suite checks this.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}
+\begin{groupplot}[group style={group size=2 by 1,horizontal sep=1.7cm},
+  width=0.47\linewidth,height=5.6cm,grid=major,grid style={black!8},tick label style={font=\scriptsize},
+  label style={font=\small},legend style={font=\scriptsize,draw=none,fill=white,fill opacity=0.8,text opacity=1}]
+\nextgroupplot[xmode=log,ymode=log,log basis x=2,xlabel={arithmetic intensity (flop/byte)},ylabel={GFLOP/s},
+  xtick={0.5,2,4,8,16},xticklabels={0.5,2,4,8,16},legend pos=north west,ymin=20,ymax=3000]
+\addplot[inkthree,dashed,domain=0.4:20,samples=2] {107*x}; \addlegendentry{107\,GB/s roof}
+\addplot[novel,thick,mark=*,mark size=1.5pt] coordinates {(0.5,53)(2,185)(4,230)(8,244)(16,264)}; \addlegendentry{$M=100$}
+\addplot[con,thick,mark=square*,mark size=1.4pt] coordinates {(0.5,42)(2,70)(4,62)(8,60)(16,46)}; \addlegendentry{$M=10{,}000$}
+\nextgroupplot[ybar,bar width=7pt,xlabel={queries per pass $Q$},ylabel={queries/s},symbolic x coords={1,4,8,16,32},
+  xtick=data,ymin=0,legend pos=north west]
+\addplot[fill=novel,draw=none] coordinates {(1,139)(4,482)(8,600)(16,636)(32,688)}; \addlegendentry{$M=100$}
+\addplot[fill=con,draw=none] coordinates {(1,110)(4,182)(8,161)(16,157)(32,120)}; \addlegendentry{$M=10{,}000$}
+\end{groupplot}
+\end{tikzpicture}
+\caption{Multi-query blocking at 16 threads, $N=500{,}000$. Left: attained performance against the measured bandwidth roof. Right: throughput.}
+\label{fig:roofline}
+\end{figure}
+
+With $M=100$, throughput rises from 139 to 688 queries/s (4.9$\times$). At $Q=1$ the kernel sits on the bandwidth
+roof. From $Q\approx4$ it leaves the roof and becomes compute- and heap-bound at about 250\,GFLOP/s. With
+$M=10{,}000$ the gain is small (1.65$\times$ at best): each thread keeps $Q$ heaps of 10K entries, and heap maintenance
+dominates. Batching therefore suits high-volume evaluation with a modest $M$. The interactive path keeps one query
+and the methodology's $M=10{,}000$.
+
+\subsection{Adaptive thread count and default schedule}
+The measurements also changed the product. On the live corpus (1,794 articles) v2's best is 4 threads guided
+(0.104\,ms vs 0.152\,ms serial), and 16 threads is slower than 4. Verification now chooses
+$p = \min(\text{cores},\,8,\,\lceil N/400\rceil)$: enough rows per thread to amortise the fork/join and heap setup, and
+no more threads than the memory system can feed. On the live corpus this gives 5 threads. The default schedule is now
+guided. It was fastest on the live corpus, at 10K and at 50K. At 100K and 500K static was slightly faster in the
+strong-scaling sweep (8.04 vs 9.05\,ms at 500K), but at 11 threads guided was faster (8.15 vs 9.14\,ms,
+Table~\ref{tab:lb}) and it avoids static's 11\% idle time on the heterogeneous cores.
+
+% ================================================================== 10
+\section{Threats to Validity and Limitations}
+\begin{enumerate}
+  \item \textbf{Headline as claim} on FakeNewsNet is a proxy, and it biases the task toward claims checkable
+  from a headline.
+  \item \textbf{Syndication versus convergence.} Embedding similarity cannot separate syndication from
+  independent outlets reporting the same wire fact, so the filter's measured effect is an upper bound.
+  \item \textbf{Dataset artefacts.} FEVER-trained models can key on claim wording, so FEVER accuracy alone would
+  not show that retrieval does the work.
+  \item \textbf{Live corpus drift.} The corpus changes between runs, so timings are taken on a frozen snapshot.
+  The benchmark reports the size it ran on.
+  \item \textbf{NLI behaviour on off-topic text.} Mitigated by the relevance floor, but the floor is a tuned
+  threshold, and topically similar articles about different entities (e.g.\ a different train route) can still
+  be labelled CONTRADICT.
+  \item \textbf{Heterogeneous cores and no pinning.} Results on Apple Silicon reflect the OS scheduler's placement
+  across performance and efficiency cores. They are not directly comparable to pinned results on a homogeneous
+  x86 server.
+  \item \textbf{Evaluation coverage.} Only LIAR has been run, against a corpus that does not cover its time span.
+  FEVER and FakeNewsNet results remain future work.
+\end{enumerate}
+
+% ================================================================== 11
+\section{Conclusion and Future Work}
+RealFact shows that evidence-based news verification over a live, multi-outlet corpus can run in about 100\,ms per
+claim on a laptop CPU, with an exact retrieval kernel that scales to $4.61\times$ on 500K articles and is
+bounded by memory bandwidth, as the roofline model predicts. The independence-aware aggregation stage does what
+the survey's discussion of conflicting and untrustworthy evidence asks for. In a controlled test it prevents ten
+copies of one report from flipping a contested claim to \emph{Contradicted}, while leaving verdicts unchanged
+where there is no syndication. Each contribution is measured on its own axis, so either claim could have failed
+independently.
+
+Applying the course's tools to the kernel showed where the time actually goes. Latency-bound single-thread code
+became bandwidth-bound after an ILP rewrite (2.6$\times$ faster serially). Karp--Flatt and weak scaling located the
+ceiling in shared memory bandwidth, not in serial code. Per-thread timing explained why guided beats static on
+heterogeneous cores. Raising arithmetic intensity through multi-query blocking was the one route past the bandwidth
+roof (5$\times$ throughput). Throughout, a 12-check suite kept every optimisation bit-exact against the serial build.
+
+\paragraph{Future work.}
+\begin{itemize}
+  \item Index the FEVER Wikipedia dump and FakeNewsNet articles to obtain accuracy and Recall@K comparable to
+  published baselines, and run the $\lambda$ and $\tau$ sensitivity sweeps on hand-labelled syndication clusters.
+  \item Runs on a pinned, homogeneous multi-socket x86 server to separate core heterogeneity and NUMA effects from
+  scheduling effects.
+  \item float16 or int8 embeddings, which halve or quarter the bytes per row and so raise the bandwidth-bound
+  ceiling directly.
+  \item Use the batched kernel inside the evaluation harness, and a heap-free top-$M$ (threshold selection) to make
+  batching pay off at large $M$.
+  \item Compare against an ANN index as future work, since ANN changes what is retrieved.
+  \item Generated justifications grounded in the cited clusters, covering the fourth stage of the survey's framework.
+\end{itemize}
+
+% ------------------------------------------------------------------ references
+\begin{thebibliography}{9}
+\bibitem{guo2022} Z.~Guo, M.~Schlichtkrull and A.~Vlachos, ``A survey on automated fact-checking,''
+\emph{Transactions of the Association for Computational Linguistics}, vol.~10, pp.~178--206, 2022. doi:10.1162/tacl\_a\_00454.
+\bibitem{fever} J.~Thorne, A.~Vlachos, C.~Christodoulopoulos and A.~Mittal, ``FEVER: a large-scale dataset for fact
+extraction and VERification,'' in \emph{Proc.\ NAACL-HLT}, 2018, pp.~809--819.
+\bibitem{liar} W.~Y.~Wang, ```Liar, liar pants on fire': A new benchmark dataset for fake news detection,'' in
+\emph{Proc.\ ACL}, 2017, pp.~422--426.
+\bibitem{fakenewsnet} K.~Shu, D.~Mahudeswaran, S.~Wang, D.~Lee and H.~Liu, ``FakeNewsNet: A data repository with news
+content, social context, and spatiotemporal information for studying fake news on social media,'' \emph{Big Data},
+vol.~8, no.~3, pp.~171--188, 2020.
+\bibitem{bge} S.~Xiao, Z.~Liu, P.~Zhang and N.~Muennighoff, ``C-Pack: Packaged resources to advance general Chinese
+embedding,'' arXiv:2309.07597, 2023.
+\bibitem{openmp} OpenMP Architecture Review Board, \emph{OpenMP Application Programming Interface, Version 5.2}, 2021.
+\bibitem{roofline} S.~Williams, A.~Waterman and D.~Patterson, ``Roofline: An insightful visual performance model for
+multicore architectures,'' \emph{Communications of the ACM}, vol.~52, no.~4, pp.~65--76, 2009.
+\end{thebibliography}
+
+% ------------------------------------------------------------------ appendix
+\appendix
+\section{Reproducing the Results}
+\begin{lstlisting}[language=bash]
+make                                   # build OpenMP + serial engine libraries
+.venv/bin/python -m tests.test_correctness   # 12-check correctness suite
+./run.sh                               # start the app at http://127.0.0.1:5050
+.venv/bin/python -m backend.bench --sizes 10000 50000 100000 500000
+.venv/bin/python -m eval.run_eval --dataset liar \
+    --path data/datasets/liar/test.tsv --limit 2000
+\end{lstlisting}
+Benchmark results are written to \texttt{data/bench\_last.json} (from the UI) or \texttt{data/bench\_cli.json}
+(from the command line). Evaluation results go to \texttt{data/eval\_results.json}. The numbers in this report
+come from the v1 benchmark run finished at 2026-10-31 17:47:37, the v2 run finished at 2026-10-31 18:53:49 (saved in
+\texttt{data/bench\_last.json}; the second v1 run is in \texttt{data/bench\_v1\_baseline.json}), and the LIAR run
+finished at 2026-10-31 17:50:12.
+
+\end{document}

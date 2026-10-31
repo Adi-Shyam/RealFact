@@ -1,0 +1,201 @@
+{
+ "liar": {
+  "dataset": "liar",
+  "n": 1267,
+  "corpus_size": 1725,
+  "finished_at": "2026-10-31 17:50:12",
+  "p95_latency_ms": 22.517424999999147,
+  "median_latency_ms": 7.802416000000534,
+  "recall_at_k": "undefined: gold evidence is not in the live news corpus",
+  "modes": {
+   "independence_log": {
+    "accuracy": 0.3756906077348066,
+    "macro_f1": 0.18772884786074273,
+    "per_class": {
+     "SUPPORT": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "support": 449
+     },
+     "CONTRADICT": {
+      "precision": 0.25,
+      "recall": 0.008797653958944282,
+      "f1": 0.0169971671388102,
+      "support": 341
+     },
+     "NEUTRAL": {
+      "precision": 0.37689243027888447,
+      "recall": 0.9916142557651991,
+      "f1": 0.546189376443418,
+      "support": 477
+     }
+    },
+    "confusion": {
+     "SUPPORT": {
+      "NEUTRAL": 444,
+      "CONTRADICT": 5
+     },
+     "CONTRADICT": {
+      "NEUTRAL": 338,
+      "CONTRADICT": 3
+     },
+     "NEUTRAL": {
+      "NEUTRAL": 473,
+      "CONTRADICT": 4
+     }
+    },
+    "verdict_counts": {
+     "Unverified": 1255,
+     "Contradicted": 12
+    },
+    "two_sided_band": 0.0037974683544303796,
+    "middle_band_verdicts": {
+     "Unverified": 473,
+     "Contradicted": 4
+    }
+   },
+   "one_vote": {
+    "accuracy": 0.3756906077348066,
+    "macro_f1": 0.18772884786074273,
+    "per_class": {
+     "SUPPORT": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "support": 449
+     },
+     "CONTRADICT": {
+      "precision": 0.25,
+      "recall": 0.008797653958944282,
+      "f1": 0.0169971671388102,
+      "support": 341
+     },
+     "NEUTRAL": {
+      "precision": 0.37689243027888447,
+      "recall": 0.9916142557651991,
+      "f1": 0.546189376443418,
+      "support": 477
+     }
+    },
+    "confusion": {
+     "SUPPORT": {
+      "NEUTRAL": 444,
+      "CONTRADICT": 5
+     },
+     "CONTRADICT": {
+      "NEUTRAL": 338,
+      "CONTRADICT": 3
+     },
+     "NEUTRAL": {
+      "NEUTRAL": 473,
+      "CONTRADICT": 4
+     }
+    },
+    "verdict_counts": {
+     "Unverified": 1255,
+     "Contradicted": 12
+    },
+    "two_sided_band": 0.0037974683544303796,
+    "middle_band_verdicts": {
+     "Unverified": 473,
+     "Contradicted": 4
+    }
+   },
+   "naive_count": {
+    "accuracy": 0.3756906077348066,
+    "macro_f1": 0.18772884786074273,
+    "per_class": {
+     "SUPPORT": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "support": 449
+     },
+     "CONTRADICT": {
+      "precision": 0.25,
+      "recall": 0.008797653958944282,
+      "f1": 0.0169971671388102,
+      "support": 341
+     },
+     "NEUTRAL": {
+      "precision": 0.37689243027888447,
+      "recall": 0.9916142557651991,
+      "f1": 0.546189376443418,
+      "support": 477
+     }
+    },
+    "confusion": {
+     "SUPPORT": {
+      "NEUTRAL": 444,
+      "CONTRADICT": 5
+     },
+     "CONTRADICT": {
+      "NEUTRAL": 338,
+      "CONTRADICT": 3
+     },
+     "NEUTRAL": {
+      "NEUTRAL": 473,
+      "CONTRADICT": 4
+     }
+    },
+    "verdict_counts": {
+     "Unverified": 1255,
+     "Contradicted": 12
+    },
+    "two_sided_band": 0.0037974683544303796,
+    "middle_band_verdicts": {
+     "Unverified": 473,
+     "Contradicted": 4
+    }
+   },
+   "filter_off": {
+    "accuracy": 0.3756906077348066,
+    "macro_f1": 0.18772884786074273,
+    "per_class": {
+     "SUPPORT": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "support": 449
+     },
+     "CONTRADICT": {
+      "precision": 0.25,
+      "recall": 0.008797653958944282,
+      "f1": 0.0169971671388102,
+      "support": 341
+     },
+     "NEUTRAL": {
+      "precision": 0.37689243027888447,
+      "recall": 0.9916142557651991,
+      "f1": 0.546189376443418,
+      "support": 477
+     }
+    },
+    "confusion": {
+     "SUPPORT": {
+      "NEUTRAL": 444,
+      "CONTRADICT": 5
+     },
+     "CONTRADICT": {
+      "NEUTRAL": 338,
+      "CONTRADICT": 3
+     },
+     "NEUTRAL": {
+      "NEUTRAL": 473,
+      "CONTRADICT": 4
+     }
+    },
+    "verdict_counts": {
+     "Unverified": 1255,
+     "Contradicted": 12
+    },
+    "two_sided_band": 0.0037974683544303796,
+    "middle_band_verdicts": {
+     "Unverified": 473,
+     "Contradicted": 4
+    }
+   }
+  }
+ }
+}
