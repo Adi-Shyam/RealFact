@@ -38,7 +38,7 @@ function showTab(name) {
   $$("section.tab").forEach((s) => s.classList.toggle("active", s.id === "tab-" + name));
   if (location.hash !== "#" + name) history.replaceState(null, "", "#" + name);
   if (name === "corpus") loadCorpus();
-  if (name === "bench") loadLastBench();
+  if (name === "bench") { loadLastBench(); loadLastAllPairs(); }
   if (name === "eval") loadEval();
   if (name === "history") loadHistory();
   if (name === "compare") { drawWeightChart(); loadCmpBench(); }
@@ -246,6 +246,7 @@ function renderVerify(r) {
         <div class="small" style="margin-top:12px;display:flex;gap:18px;flex-wrap:wrap">
           <span>Scan: OpenMP <b class="mono">${fmt(par.kernel_ms, 3)} ms</b> vs serial build <b class="mono">${fmt(par.serial_ms, 3)} ms</b> (×${fmt(par.speedup)} for this one query)</span>
           <span class="${par.ids_match_serial ? "yes" : "no"}">${par.ids_match_serial ? "✓ IDs identical to serial build" : "✗ IDs differ from serial"}</span>
+          ${par.cluster_ms !== undefined ? `<span>Clustering kernel (C++/OpenMP): <b class="mono">${fmt(par.cluster_ms, 3)} ms</b> for ${par.cluster_pool} candidates</span>` : ""}
           <span class="muted">Retrieve-then-truncate would have kept only <b>${rw.truncate_then_cluster_independent}</b> independent stories in K = ${p.K} (${rw.truncate_then_cluster_slots_wasted} slots wasted)</span>
         </div>
         ${rw.corpus_size < 50000 ? `<p class="tiny muted" style="margin:8px 0 0">With a corpus this small (${rw.corpus_size.toLocaleString()} ${r.corpus === "fever" ? "pages" : "articles"}), OpenMP start-up costs about as much as the scan itself. See the Parallel benchmark tab for 10K–500K corpora.</p>` : ""}
@@ -705,6 +706,92 @@ async function loadEval() {
       ${d.modes.independence_log.merged_not_supported ? `<p class="small" style="margin:8px 0 0">Merged not-supported accuracy: ${fmt(d.modes.independence_log.merged_not_supported.accuracy * 100, 1)}%</p>` : ""}
     </div>`).join("") + `<div style="margin-top:16px">${howto}</div>`;
 }
+
+/* ------------------------------------------------------------------ kernel 2: all-pairs + clustering */
+const AP_COLORS = () => ({ static: css("--ink-3"), "static,1": css("--accent"), dynamic: css("--con"), guided: css("--sup") });
+
+$("#ap-btn").onclick = async () => {
+  const btn = $("#ap-btn");
+  btn.disabled = true;
+  $("#ap-prog").hidden = false;
+  try {
+    const job = await api("/api/syndication/bench", { method: "POST", body: "{}" });
+    const res = await waitJob(job.id, (j) => { $("#ap-prog i").style.width = j.progress * 100 + "%"; $("#ap-msg").textContent = j.message; });
+    renderAllPairs(res);
+    $("#ap-msg").textContent = "Finished.";
+  } catch (e) {
+    $("#ap-msg").textContent = "Error: " + e.message;
+  } finally {
+    btn.disabled = false;
+    $("#ap-prog").hidden = true;
+  }
+};
+
+let AP = null;
+async function loadLastAllPairs() {
+  if (AP) return;
+  const r = await api("/api/syndication/bench/last");
+  if (r) renderAllPairs(r);
+  else $("#ap-out").innerHTML = `<div class="card empty">No kernel-2 benchmark yet. Press <b>Run kernel-2 benchmark</b> (about half a minute).</div>`;
+}
+
+function renderAllPairs(res) {
+  AP = res;
+  const threads = res.threads, pmax = Math.max(...threads);
+  const names = ["static", "static,1", "dynamic", "guided"];
+  const allOk = res.sizes.every((s) => s.configs.every((c) => c.identical_to_serial)) && res.cluster.every((k) => k.configs.every((c) => c.identical_to_reference));
+  const at = (s, n, p) => s.configs.find((c) => c.schedule === n && c.threads === p);
+  const live = res.sizes[0];
+  const st = at(live, "static", pmax), dy = at(live, "dynamic", pmax), cy = at(live, "static,1", pmax);
+  $("#ap-out").innerHTML = `
+    <div class="callout ${allOk ? "" : "warn"}" style="margin-bottom:16px">${allOk ? "✓" : "✗"} Every configuration produced ${allOk ? "output identical to" : "output that differs from"} the serial build (all-pairs) and the NumPy reference (clustering). ${res.finished_at} · τ = ${res.tau} · median of ${res.reps} runs.</div>
+    <div class="grid g2">${res.sizes.map((s, i) => `
+      <div class="card"><h3>All-pairs speedup · ${esc(s.label)} · ${(s.pairs / 1e6).toFixed(1)}M pairs</h3>
+        <p class="tiny muted" style="margin:4px 0 0">Serial ${fmt(s.serial.median_ms, 1)} ms (${fmt(s.serial_gflops, 0)} GFLOP/s) · ${s.edges.toLocaleString()} duplicate pairs above τ</p>
+        <div class="chart-box"><canvas id="ap-ch-${i}"></canvas></div></div>`).join("")}
+    </div>
+    <div class="card tbl-wrap" style="margin-top:16px"><h3>Load balance on the triangular loop at ${pmax} threads</h3>
+      <table style="margin-top:8px"><thead><tr><th>Corpus</th>${names.map((n) => `<th class="num">${n}: speedup</th><th class="num">max/mean busy</th>`).join("")}</tr></thead>
+      <tbody>${res.sizes.map((s) => `<tr><td>${esc(s.label)}</td>${names.map((n) => { const c = at(s, n, pmax); return `<td class="num">${c ? "×" + fmt(c.speedup) : "—"}</td><td class="num">${c && c.imbalance ? fmt(c.imbalance) : "—"}</td>`; }).join("")}</tr>`).join("")}</tbody></table>
+      <p class="small" style="margin:8px 0 0">${st && dy ? `With the default <b>static</b> schedule each thread gets one contiguous range of rows, and the first rows have the most partners, so the busiest thread works ${fmt(st.imbalance)}× the average and speedup stops at ×${fmt(st.speedup)}. Interleaving rows (<b>static,1</b>, ×${fmt(cy.speedup)}) or handing them out on demand (<b>dynamic</b>, ×${fmt(dy.speedup)}) balances the triangle.` : ""} Merging the per-thread edge lists and union-find run serially afterwards: ${fmt(Math.max(...res.sizes.map((s) => { const c = at(s, "dynamic", pmax); return c ? (c.merge_ms / c.median_ms) * 100 : 0; })), 2)}% of the parallel run time at most, so Amdahl's serial fraction is not the limit here. The limit is the hardware: 6 of the 11 cores are efficiency cores that run this loop at about 40% of a performance core's speed (measured: 5 threads ×4.6, 11 threads ×6.9), so 11 threads are worth about 7 performance cores, not 11.</p></div>
+    <div class="card tbl-wrap" style="margin-top:16px"><h3>Query-time clustering kernel · pool of ${res.cluster[0].m.toLocaleString()} syndicated candidates</h3>
+      <table style="margin-top:8px"><thead><tr><th class="num">K clusters</th><th class="num">NumPy reference ms</th><th class="num">serial C++ ms</th>${threads.map((t) => `<th class="num">${t}T ms</th>`).join("")}<th class="num">best vs serial</th><th class="num">best vs NumPy</th></tr></thead>
+      <tbody>${res.cluster.map((k) => { const b = k.configs.slice().sort((a, c) => a.median_ms - c.median_ms)[0]; return `<tr><td class="num">${k.K}</td><td class="num">${fmt(k.numpy.median_ms, 2)}</td><td class="num">${fmt(k.serial.median_ms, 2)}</td>${k.configs.map((c) => `<td class="num">${fmt(c.median_ms, 2)}</td>`).join("")}<td class="num">×${fmt(b.speedup)}</td><td class="num ${b.vs_numpy >= 1 ? "yes" : "no"}">×${fmt(b.vs_numpy)}</td></tr>`; }).join("")}</tbody></table>
+      <p class="small" style="margin:8px 0 0">Choosing leaders is sequential by definition (each decision depends on the leaders before it). The kernel processes candidates in blocks: similarity to the existing leaders is computed in parallel, then a short sequential pass compares each candidate only with leaders founded inside its block. The result is exactly the sequential algorithm's. Assigning the rest of the pool to the K leaders is a plain parallel loop. The NumPy reference sends its assignment step to Apple's Accelerate BLAS (the M3's matrix unit), which is why it wins at some K: that is a hardware matrix unit, not more CPU parallelism.</p></div>`;
+  const linX = { x: { type: "linear", min: 0, max: pmax, ticks: { stepSize: 2 } } };
+  const col = AP_COLORS();
+  res.sizes.forEach((s, i) => {
+    const ds = names.map((n) => ({ label: n, data: threads.map((p) => ({ x: p, y: (at(s, n, p) || {}).speedup ?? null })), borderColor: col[n], backgroundColor: col[n], borderDash: n === "static" ? [4, 3] : [], tension: 0.15 }));
+    ds.push({ label: "ideal", data: threads.map((p) => ({ x: p, y: p })), borderColor: css("--ink-3"), borderDash: [6, 4], pointRadius: 0, borderWidth: 1 });
+    mkChart(`ap-ch-${i}`, { type: "line", data: { datasets: ds }, options: baseOpts("threads p", "speedup vs serial build", linX) });
+  });
+}
+
+$("#syn-btn").onclick = async () => {
+  const b = $("#syn-btn");
+  b.disabled = true;
+  b.innerHTML = `<span class="spinner"></span> Comparing all pairs`;
+  try {
+    const r = await api("/api/syndication", { method: "POST", body: JSON.stringify({ tau: +$("#syn-tau").value }) });
+    const par = r.parallel;
+    $("#syn-out").innerHTML = `
+      <div class="grid g3" style="margin-top:14px">
+        <div class="card stat"><div class="n">${(r.pairs / 1e6).toFixed(1)}M</div><div class="l">article pairs compared (${r.N.toLocaleString()} articles)</div></div>
+        <div class="card stat novel"><div class="n">${fmt(r.share_with_duplicate * 100, 1)}%</div><div class="l">of articles have a near-copy · ${r.groups} groups, largest ${r.largest}</div></div>
+        <div class="card stat"><div class="n">×${fmt(par.speedup, 1)}</div><div class="l">${fmt(par.omp_ms, 1)} ms on ${par.threads} threads (${par.schedule}) vs ${fmt(par.serial_ms, 1)} ms serial · ${fmt(par.gflops, 0)} GFLOP/s</div></div>
+      </div>
+      <p class="small ${par.identical_to_serial ? "yes" : "no"}" style="margin:10px 0 0">${par.identical_to_serial ? "✓ Groups and edges identical to the serial build" : "✗ Output differs from the serial build"} · busiest thread ${fmt(par.imbalance)}× the average · serial merge + union-find ${fmt(par.merge_ms, 2)} ms</p>
+      <h3 style="margin-top:14px">Largest groups</h3>
+      <div class="stack" style="margin-top:8px">${r.top_groups.map((g) => `<details class="card" style="padding:10px 14px"><summary class="small"><b>${g.size} articles</b> from ${g.outlets} outlet${g.outlets > 1 ? "s" : ""}: ${esc(g.members[0].title)}</summary>
+        <ul class="clean small" style="margin-top:8px">${g.members.map((m) => `<li><span class="muted tiny">${esc(m.domain)}</span> · <a href="${esc(m.url)}" target="_blank" rel="noopener">${esc(m.title)}</a></li>`).join("")}</ul></details>`).join("")}</div>
+      <p class="tiny muted" style="margin:8px 0 0">Without independence weighting, a story in a group of ${r.largest} would count as ${r.largest} separate confirmations. RealFact gives it w = 1 + λ·log₂${r.largest} = ${fmt(1 + (STATUS ? STATUS.defaults.lam : 0.5) * Math.log2(r.largest))}.</p>`;
+  } catch (e) {
+    $("#syn-out").innerHTML = `<div class="err" style="margin-top:10px">${esc(e.message)}</div>`;
+  } finally {
+    b.disabled = false;
+    b.textContent = "Find syndicated stories";
+  }
+};
 
 /* ------------------------------------------------------------------ history */
 const when = (iso) => new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });

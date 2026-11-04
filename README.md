@@ -59,9 +59,25 @@ curl -L -o data/datasets/fever/wiki-pages.zip https://fever.ai/download/fever/wi
 - **Results on the 179 demo claims:** 74.3% accuracy (macro F1 0.741), versus 58.7% with the xsmall model. The gold page was retrieved within the top cluster for 89.1% of verifiable claims, and within the top 5 for 95.0%.
 - **Scope:** this is a demo slice selected to suit a lead-only index, so it is not comparable to published full-FEVER scores.
 
+## Second parallel kernel: all-pairs syndication detection and clustering
+
+The retrieval scan is memory-bandwidth bound: each 1.5 KB row is read once for one dot product. Two more stages now run in the C++ engine with OpenMP (`engine/realfact_engine.cpp`):
+
+- **`rf_dup_pairs`, corpus-wide syndication map** (Live corpus tab → *Find syndicated stories*). Every pair of articles is compared once (N(N−1)/2 pairs, 6.6M for the live corpus), pairs with cos > τ are linked, and union-find groups them.
+  - Rows are processed four at a time against each partner row (`dot4` register blocking), so the kernel is compute bound. It runs at about 48 GFLOP/s serial and about 270 GFLOP/s on 11 threads.
+  - Edges go to per-thread buffers with no locks, then are sorted, so output is identical to the serial build.
+  - The iteration space is a triangle, which makes the schedule matter. At 11 threads on the live corpus: static ×5.0 (busiest thread does 1.9× the average work), static,1 ×5.6, guided ×6.7, dynamic ×6.9.
+  - The ceiling is the hardware, not Amdahl's law (the serial merge and union-find take under 1% of the time). Five performance-core threads give ×4.6. The 6 efficiency cores run at about 40% of a performance core's speed, so 11 threads are worth about 7 performance cores.
+  - On today's corpus, 13% of articles have a near-copy, and the largest group is one story carried as 23 articles across 10 outlets.
+- **`rf_cluster`, query-time leader clustering** (§II-C) now runs in the engine instead of NumPy.
+  - Choosing leaders is sequential by definition. The kernel uses block speculation: similarities to existing leaders are computed in parallel, then a short sequential pass compares each candidate only with leaders founded inside its block. Output is exactly the sequential algorithm's.
+  - On a 9K-candidate pool at K = 10: ×5.8 vs serial, ×3.2 vs NumPy. At K = 1000: ×2.5 vs NumPy. At K = 100, NumPy is faster (×0.75), because its assignment step runs on Apple's Accelerate BLAS, which uses the M3's matrix unit.
+  - On the live corpus the pool above the relevance floor is usually a few dozen articles, so this stage takes microseconds and parallel regions are skipped below 4,096 dot products.
+- The **Parallel benchmark** tab has a *Run kernel-2 benchmark* button (schedules × threads on the live corpus and 10K synthetic vectors, plus the clustering sweep). Results are saved to `data/allpairs_last.json`. API: `POST /api/syndication`, `POST /api/syndication/bench`, `GET /api/syndication/bench/last`.
+
 ## Correctness and performance work
 
-- `tests/test_correctness.py` holds 12 checks: engine vs NumPy across 45 configurations, bit-exactness vs the serial build, exact ties, edge cases, the leakage mask, batched == single, per-thread row accounting, the aggregation equations, clustering, exact Wilcoxon vs enumeration, ingestion and label maps. Run it with `.venv/bin/python -m tests.test_correctness` or the **Run self-test** button on the Benchmark tab.
+- `tests/test_correctness.py` holds 14 checks: engine vs NumPy across 45 configurations, bit-exactness vs the serial build, exact ties, edge cases, the leakage mask, batched == single, per-thread row accounting, the aggregation equations, clustering, the C++ clustering kernel vs the NumPy reference (162 configurations), the all-pairs kernel vs a NumPy Gram matrix and BFS components, exact Wilcoxon vs enumeration, ingestion and label maps. Run it with `.venv/bin/python -m tests.test_correctness` or the **Run self-test** button on the Benchmark tab.
 - **Kernel v2:** a 16-way ILP dot product (four independent vector accumulators, explicit summation order, still bit-exact) makes the serial scan 2.6× faster and reaches the ~96 GB/s memory ceiling with 4–8 threads.
 - **New engine entry points:** `rf_topm_stats` returns per-thread busy time and row counts (load balance). `rf_topm_batch` scores Q queries per row load, register-blocked 4 at a time (roofline; 5× throughput at M = 100).
 - **New benchmark analyses:** Karp–Flatt serial fraction, per-thread load balance, chunk-size sweep, weak scaling, and batched throughput with a roofline plot. The v1 results are kept in `data/bench_v1_baseline.json` for comparison.

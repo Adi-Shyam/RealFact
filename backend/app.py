@@ -8,7 +8,7 @@ import uuid
 
 from flask import Flask, jsonify, request, send_from_directory
 
-from . import bench, pipeline, websearch
+from . import bench, pipeline, syndication, websearch
 from .config import (CORPUS_DEFAULTS, DATA_DIR, DEFAULTS, EMBED_MODEL, FEEDS, FEVER_CLAIMS_PATH, FEVER_DB_PATH,
                      FEVER_EMB_PATH, NLI_MODEL, ROOT)
 from .engine import omp_engine
@@ -18,6 +18,7 @@ from .store import Store
 
 WEB = os.path.join(ROOT, "web")
 BENCH_PATH = os.path.join(DATA_DIR, "bench_last.json")
+ALLPAIRS_PATH = os.path.join(DATA_DIR, "allpairs_last.json")
 EVAL_PATH = os.path.join(DATA_DIR, "eval_results.json")
 REFRESH_SECONDS = int(os.environ.get("REALFACT_REFRESH", 20 * 60))
 
@@ -237,6 +238,41 @@ def bench_baseline():
     if not os.path.exists(path):
         return jsonify(None)
     with open(path) as f:
+        return app.response_class(f.read(), mimetype="application/json")
+
+
+@app.post("/api/syndication")
+def syndication_map():
+    b = request.get_json(silent=True) or {}
+    tau = float(b.get("tau", DEFAULTS["tau"]))
+    if store.size < 2:
+        return jsonify({"error": "The live corpus needs at least two articles."}), 400
+    return jsonify(syndication.run_map(store, tau, int(b.get("threads", 0)), b.get("schedule", "dynamic")))
+
+
+@app.post("/api/syndication/bench")
+def syndication_bench():
+    b = request.get_json(silent=True) or {}
+    sizes = [s if s == "live" else int(s) for s in b.get("sizes", ["live", 10000])]
+    threads = [int(t) for t in b.get("threads", [1, 2, 4, 8, omp_engine().max_threads])]
+
+    def fn(progress):
+        progress(0.0, "waiting for ingestion to finish" if ingest_lock.locked() else "starting")
+        with ingest_lock:
+            res = syndication.sweep(store.emb, sorted(set(threads)), sizes, float(b.get("tau", DEFAULTS["tau"])),
+                                    int(b.get("reps", 5)), progress)
+        with open(ALLPAIRS_PATH, "w") as f:
+            json.dump(res, f)
+        return res
+
+    return jsonify(start_job("allpairs", fn))
+
+
+@app.get("/api/syndication/bench/last")
+def syndication_bench_last():
+    if not os.path.exists(ALLPAIRS_PATH):
+        return jsonify(None)
+    with open(ALLPAIRS_PATH) as f:
         return app.response_class(f.read(), mimetype="application/json")
 
 

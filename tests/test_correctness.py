@@ -211,6 +211,77 @@ def retrieve_wide_clustering():
     return "6 stories, K = 4"
 
 
+def _syndicated_pool(n_stories, copies_max, noise, seed):
+    """Best-first pool of near-duplicate groups (copies of one story differ by small noise)."""
+    rng = np.random.default_rng(seed)
+    centres = unit(n_stories, 384, seed + 1)
+    rows = []
+    for c in range(n_stories):
+        for _ in range(int(rng.integers(1, copies_max + 1))):
+            v = centres[c] + rng.normal(0, noise, 384).astype(np.float32)
+            rows.append(v / np.linalg.norm(v))
+    rows = np.array(rows, np.float32)
+    return np.ascontiguousarray(rows[rng.permutation(len(rows))])
+
+
+@test
+def cluster_kernel_equals_reference():
+    """OpenMP leader clustering = NumPy reference = serial build, for every schedule and block size."""
+    cases = 0
+    for seed, (stories, cmax, noise) in enumerate([(40, 6, 0.004), (300, 12, 0.01), (900, 4, 0.02)]):
+        V = _syndicated_pool(stories, cmax, noise, 30 + seed)
+        for tau, K in [(0.9, 10), (0.8, 50), (0.95, 500)]:
+            ref_l, ref_a = pipeline.greedy_cluster(V, tau, K)
+            s_l, s_a, _, _ = serial_engine().cluster(V, tau, K)
+            assert s_l == ref_l and np.array_equal(s_a, ref_a), f"serial != reference (tau={tau}, K={K})"
+            for sched, t, block in itertools.product(SCHEDULES, (2, 8), (1, 37, 256)):
+                l, a, _, _ = omp_engine().cluster(V, tau, K, t, sched, block=block)
+                assert l == ref_l and np.array_equal(a, ref_a), f"{sched} {t}T block {block} differs"
+                cases += 1
+    empty_l, empty_a, _, _ = omp_engine().cluster(np.zeros((0, 384), np.float32), 0.9, 10)
+    assert empty_l == [] and len(empty_a) == 0
+    return f"{cases} configurations identical"
+
+
+@test
+def all_pairs_kernel_equals_numpy():
+    """All-pairs duplicate kernel: same edges as a NumPy Gram matrix, same groups as BFS, every schedule."""
+    E = _syndicated_pool(150, 5, 0.01, 77)
+    N = E.shape[0]
+    tau = 0.9
+    G = E.astype(np.float64) @ E.astype(np.float64).T
+    iu = np.triu_indices(N, 1)
+    margin = np.abs(G[iu] - tau) > 1e-4  # pairs this close to tau may round either way in float32
+    want = set(zip(iu[0][(G[iu] > tau) & margin].tolist(), iu[1][(G[iu] > tau) & margin].tolist()))
+    ref = serial_engine().dup_pairs(E, tau)
+    got = set(zip(ref["edges_i"].tolist(), ref["edges_j"].tolist()))
+    assert want <= got and len(got - want) <= int((~margin).sum()), "edge set differs from NumPy"
+    # connected components by BFS over the kernel's own edges
+    adj = {i: [] for i in range(N)}
+    for i, j in got:
+        adj[i].append(j)
+        adj[j].append(i)
+    label = [-1] * N
+    for s0 in range(N):
+        if label[s0] < 0:
+            stack, comp = [s0], []
+            label[s0] = s0
+            while stack:
+                x = stack.pop()
+                comp.append(x)
+                for y in adj[x]:
+                    if label[y] < 0:
+                        label[y] = s0
+                        stack.append(y)
+    assert np.array_equal(ref["labels"], np.array(label)), "components differ from BFS"
+    for sched, chunk, t in [("static", 0, 4), ("static", 1, 8), ("dynamic", 0, 8), ("guided", 0, 3)]:
+        r = omp_engine().dup_pairs(E, tau, t, sched, chunk)
+        assert np.array_equal(r["labels"], ref["labels"]) and np.array_equal(r["edges_i"], ref["edges_i"]) \
+            and np.array_equal(r["edges_j"], ref["edges_j"]) and np.array_equal(r["edges_s"], ref["edges_s"])
+        assert int(r["thread_pairs"].sum()) == N * (N - 1) // 2, "pairs not covered exactly once"
+    return f"N = {N}, {len(got)} edges, {len(set(label))} groups"
+
+
 @test
 def wilcoxon_matches_enumeration():
     """Exact Wilcoxon p-value equals brute-force enumeration of all 2^n sign assignments."""

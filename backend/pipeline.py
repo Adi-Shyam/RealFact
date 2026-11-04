@@ -39,7 +39,8 @@ def auto_threads(N, max_threads):
 
 
 def greedy_cluster(V, tau, max_clusters):
-    """Single-pass leader clustering in score order.
+    """Single-pass leader clustering in score order (NumPy reference; the pipeline runs the same
+    algorithm in the C++ engine, rf_cluster, and tests check the two agree exactly).
 
     V: candidate vectors sorted best-first. A candidate joins its most similar leader if
     cosine > tau; otherwise it founds a new cluster while fewer than max_clusters exist.
@@ -145,14 +146,14 @@ def verify(store, claim, req=None, defaults=None):
 
     # --- Retrieve-wide clustering ---------------------------------------------------------
     t = time.perf_counter()
-    V = emb[cand_idx]
-    leaders, assign = greedy_cluster(V, p["tau"], p["K"])
+    V = np.ascontiguousarray(emb[cand_idx])
+    leaders, assign, cluster_s, cluster_phases = eng.cluster(V, p["tau"], p["K"], threads, p["schedule"])
     clusters = []
     for c, lj in enumerate(leaders):
         members = np.nonzero(assign == c)[0]
         clusters.append({"rep": int(lj), "members": members.tolist()})
     # Ablation: cluster AFTER truncating to K (the self-defeating order, §II-C).
-    trunc_leaders, trunc_assign = greedy_cluster(V[: p["K"]], p["tau"], p["K"])
+    trunc_leaders, trunc_assign, _, _ = eng.cluster(V[: p["K"]], p["tau"], p["K"], 1)
     timings["clustering"] = time.perf_counter() - t
 
     # --- NLI on one representative per cluster (+ raw top-K for the filter-off ablation) ----
@@ -231,6 +232,8 @@ def verify(store, claim, req=None, defaults=None):
             "kernel_ms": kernel_s * 1e3, "serial_ms": serial_s * 1e3,
             "speedup": serial_s / kernel_s if kernel_s > 0 else None,
             "ids_match_serial": ids_match,
+            "cluster_ms": cluster_s * 1e3, "cluster_pool": int(len(cand_idx)),
+            "cluster_leader_ms": float(cluster_phases[0]) * 1e3, "cluster_assign_ms": float(cluster_phases[1]) * 1e3,
         },
         "timings_ms": {k: v * 1e3 for k, v in timings.items()},
     }

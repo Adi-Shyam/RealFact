@@ -155,6 +155,18 @@
     <div id="selftest-out"></div>
   </div>
   <div id="bench-out" style="margin-top:16px"></div>
+  <div class="card" style="margin-top:16px">
+    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+      <div style="flex:1 1 420px"><div class="eyebrow">Second kernel</div><h2 style="margin-top:4px">All-pairs syndication detection and query-time clustering</h2>
+        <p class="small muted" style="margin:6px 0 0">The retrieval scan reads each 1.5 KB row once for a single dot product, so it is limited by memory bandwidth. The all-pairs kernel compares every article with every other one (N(N−1)/2 pairs) and reuses each row thousands of times, so it is limited by arithmetic and scales further. Its iteration space is a triangle, so the OpenMP schedule matters. Speedup is against the build without OpenMP; every run is checked for identical output.</p></div>
+      <div style="display:flex;gap:10px;align-items:center;margin-left:auto">
+        <button class="btn primary" id="ap-btn">Run kernel-2 benchmark</button>
+      </div>
+    </div>
+    <span class="small muted" id="ap-msg"></span>
+    <div class="progress" id="ap-prog" hidden><i></i></div>
+  </div>
+  <div id="ap-out" style="margin-top:16px"></div>
 </section>
 
 <!-- ======================================================= CORPUS -->
@@ -163,6 +175,15 @@
     <div><div class="eyebrow">Live evidence pool</div><h2 style="margin-top:4px" id="c-title">…</h2>
       <p class="small muted" style="margin:4px 0 0" id="c-sub"></p></div>
     <div style="margin-left:auto"><button class="btn primary" id="ingest-btn">Fetch feeds now</button></div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+      <div style="flex:1 1 420px"><div class="eyebrow">Syndication map</div><h3 style="margin-top:4px">How many stories in the corpus are copies?</h3>
+        <p class="small muted" style="margin:4px 0 0">Compares every article with every other one on all cores (OpenMP all-pairs kernel), links pairs with cosine above τ, and groups them. This is the redundancy that independence weighting corrects for.</p></div>
+      <label class="field" style="width:110px;margin:0"><span>τ</span><input type="number" id="syn-tau" value="0.9" step="0.01" min="0.5" max="0.99"></label>
+      <button class="btn primary" id="syn-btn">Find syndicated stories</button>
+    </div>
+    <div id="syn-out"></div>
   </div>
   <div id="corpus-out" style="margin-top:16px"></div>
 </section>
