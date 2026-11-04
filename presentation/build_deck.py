@@ -602,12 +602,8 @@ s.shapes.title.text = "Thank You"
 tr = s.shapes.title.text_frame.paragraphs[0].runs[0]
 tr.font.size = Pt(48); tr.font.bold = True; tr.font.color.rgb = NAVY
 sub = s.placeholders[1]
-sub.text_frame.text = ""
-p = sub.text_frame.paragraphs[0]; p.alignment = PP_ALIGN.CENTER
-r = p.add_run(); r.text = "Questions?"; r.font.size = Pt(20); r.font.color.rgb = BLUE
-p = sub.text_frame.add_paragraph(); p.alignment = PP_ALIGN.CENTER
-r = p.add_run(); r.text = "github.com/Adi-Shyam/RealFact"; r.font.size = Pt(13); r.font.color.rgb = GRAY
-s.notes_slide.notes_text_frame.text = "Thank you. We are happy to take questions, or to run a live demo of the system."
+sub._element.getparent().remove(sub._element)  # no subtitle: avoids an empty "Click to add" prompt
+s.notes_slide.notes_text_frame.text = "Thank you."
 
 # ------------------------------------------------------------------ drop the template's placeholder slides
 sldIdLst = prs.slides._sldIdLst
