@@ -220,36 +220,41 @@ def table(s, x, y, w, h, rows, col_w, header_fill=NAVY, size=11, highlight_row=N
 
 
 # ================================================================== 1. Title
+# Order, top to bottom: title, NITK logo, tagline, names, course line.
+import os
 s = prs.slides.add_slide(L["TITLE"])
-s.shapes.title.text = "RealFact"
-tp = s.shapes.title.text_frame.paragraphs[0]
+title_ph = s.shapes.title
+title_ph.text = "RealFact"
+tp = title_ph.text_frame.paragraphs[0]
+tp.alignment = PP_ALIGN.CENTER
 tp.runs[0].font.size = Pt(54)
 tp.runs[0].font.bold = True
 tp.runs[0].font.color.rgb = NAVY
-p2 = s.shapes.title.text_frame.add_paragraph()
-p2.alignment = PP_ALIGN.CENTER
-r = p2.add_run()
-r.text = "OpenMP-Accelerated, Independence-Aware Real-Time News Verification"
-r.font.size = Pt(20)
-r.font.color.rgb = BLUE
+title_ph.left, title_ph.top, title_ph.width, title_ph.height = Inches(0.34), Inches(0.55), Inches(9.32), Inches(1.05)
+title_ph.text_frame.vertical_anchor = MSO_ANCHOR.MIDDLE
+
+logo_h = 1.3
+logo_w = logo_h * 325 / 307
+s.shapes.add_picture(os.path.join(os.path.dirname(os.path.abspath(__file__)), "nitk_logo.png"),
+                     Inches((10 - logo_w) / 2), Inches(1.7), height=Inches(logo_h))
+
 sub = s.placeholders[1]
+sub.left, sub.top, sub.width, sub.height = Inches(0.2), Inches(3.15), Inches(9.6), Inches(1.6)
 sub.text_frame.text = ""
+sub.text_frame.margin_left = sub.text_frame.margin_right = 0
+sub.text_frame.word_wrap = True
+sub.text_frame.vertical_anchor = MSO_ANCHOR.TOP
+p0 = sub.text_frame.paragraphs[0]
+p0.alignment = PP_ALIGN.CENTER
+p0.space_after = Pt(10)
+r = p0.add_run(); r.text = "OpenMP-Accelerated, Independence-Aware Real-Time News Verification"
+r.font.size = Pt(20); r.font.color.rgb = BLUE
 names = "Adithya Shyam D (241IT005)   ·   Krishna (241IT039)   ·   P Suman (241IT049)   ·   Saurabh (241IT072)"
-sp = sub.text_frame.paragraphs[0]
-sp.alignment = PP_ALIGN.CENTER
+sp = sub.text_frame.add_paragraph(); sp.alignment = PP_ALIGN.CENTER
 rr = sp.add_run(); rr.text = names; rr.font.size = Pt(13); rr.font.color.rgb = NAVY; rr.font.bold = True
 sp2 = sub.text_frame.add_paragraph(); sp2.alignment = PP_ALIGN.CENTER
 rr = sp2.add_run(); rr.text = "IT 301 Parallel Computing  ·  Department of Information Technology, NIT Karnataka, Surathkal"
 rr.font.size = Pt(12); rr.font.color.rgb = GRAY
-# NIT Karnataka logo, centred above the title
-import os
-logo_h = 1.25
-logo_w = logo_h * 325 / 307
-s.shapes.add_picture(os.path.join(os.path.dirname(os.path.abspath(__file__)), "nitk_logo.png"),
-                     Inches((10 - logo_w) / 2), Inches(0.85), height=Inches(logo_h))
-for ph in (s.shapes.title, sub):  # centre the block vertically; set the full frame so width is kept
-    l_, t_, w_, h_ = ph.left, ph.top, ph.width, ph.height
-    ph.left, ph.top, ph.width, ph.height = l_, t_ + Inches(0.45), w_, h_
 s.notes_slide.notes_text_frame.text = (
     "Good morning. Our project is RealFact: a system that checks whether a news claim is supported by live news, "
     "and does the heavy similarity work in parallel with OpenMP. It answers with one of four verdicts: Supported, "
