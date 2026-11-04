@@ -3,8 +3,9 @@
 \IEEEoverridecommandlockouts
 
 \usepackage{cite}
-\usepackage{balance}
-\usepackage{amsmath,amssymb}
+\usepackage{amsmath}
+\usepackage[T1]{fontenc}
+\usepackage{newtxtext,newtxmath}
 \usepackage{graphicx}
 \usepackage{booktabs,multirow,array,tabularx}
 \usepackage[table]{xcolor}
@@ -41,12 +42,40 @@
 
 \begin{document}
 
-\title{RealFact: OpenMP-Accelerated, Independence-Aware\\Real-Time News Verification}
+\title{RealFact: OpenMP-Accelerated, Independence-Aware Real-Time News Verification}
+
+\makeatletter
+\newcommand{\linebreakand}{\end{@IEEEauthorhalign}\hfill\mbox{}\par\mbox{}\hfill\begin{@IEEEauthorhalign}}
+\makeatother
 
 \author{
-\IEEEauthorblockN{Adithya Shyam D (241IT005), Krishna (241IT039), P Suman (241IT049), Saurabh (241IT072)}
-\IEEEauthorblockA{Department of Information Technology, National Institute of Technology Karnataka, Surathkal, India\\
-IT 301 Parallel Computing, course project, November 2026}
+\IEEEauthorblockN{Adithya Shyam D}
+\IEEEauthorblockA{\textit{Dept. of Information Technology}\\
+\textit{NIT Karnataka, Surathkal}\\
+Mangaluru, India\\
+241IT005\\
+adithyashyamd.241it005@nitk.edu.in}
+\and
+\IEEEauthorblockN{Krishna}
+\IEEEauthorblockA{\textit{Dept. of Information Technology}\\
+\textit{NIT Karnataka, Surathkal}\\
+Mangaluru, India\\
+241IT039\\
+krishna.241it039@nitk.edu.in}
+\linebreakand
+\IEEEauthorblockN{P Suman}
+\IEEEauthorblockA{\textit{Dept. of Information Technology}\\
+\textit{NIT Karnataka, Surathkal}\\
+Mangaluru, India\\
+241IT049\\
+psuman.241it049@nitk.edu.in}
+\and
+\IEEEauthorblockN{Saurabh}
+\IEEEauthorblockA{\textit{Dept. of Information Technology}\\
+\textit{NIT Karnataka, Surathkal}\\
+Mangaluru, India\\
+241IT072\\
+saurabh.241it072@nitk.edu.in}
 }
 
 \maketitle
@@ -818,7 +847,7 @@ are screenshots of the running system.
 
 \begin{figure*}[!t]
 \centering
-\includegraphics[width=\textwidth]{ui_verdict.png}
+\includegraphics[width=0.92\textwidth]{ui_verdict.png}
 \caption{Verify tab: verdict panel with the $S$ meter and $D$, polar mass and cluster count; corpus statistics; and the
 timed pipeline stages (blue = novel stage), with the per-query OpenMP vs.\ serial comparison and the retrieve-then-truncate
 counterfactual.}
@@ -827,13 +856,13 @@ counterfactual.}
 
 \begin{figure*}[!t]
 \centering
-\includegraphics[width=\textwidth]{ui_evidence.png}\\[-1pt]
+\includegraphics[width=0.94\textwidth]{ui_evidence.png}\\[-1pt]
 {\footnotesize (a) Evidence card: one cluster of five articles from five outlets (the top one fetched by web search); weight
 $w_c=2.16$ instead of a naive 5.}\\[5pt]
-\includegraphics[width=\textwidth]{ui_rules.png}\\[-1pt]
+\includegraphics[width=0.94\textwidth]{ui_rules.png}\\[-1pt]
 {\footnotesize (b) Existing aggregation rules vs.\ RealFact on the same evidence; without syndication all rules agree, the
 expected control result.}\\[5pt]
-\includegraphics[width=\textwidth]{ui_fever.png}\\[-1pt]
+\includegraphics[width=0.94\textwidth]{ui_fever.png}\\[-1pt]
 {\footnotesize (c) FEVER demo mode: FEVER's gold label and annotated evidence next to RealFact's answer and the gold page's
 retrieval rank.}
 \caption{Result views of the Verify tab.}
@@ -842,10 +871,10 @@ retrieval rank.}
 
 \begin{figure*}[!t]
 \centering
-\includegraphics[width=0.93\textwidth]{ui_synmap.png}\\[-1pt]
+\includegraphics[width=0.86\textwidth]{ui_synmap.png}\\[-1pt]
 {\footnotesize (a) Syndication map (Live corpus tab), computed by kernel 2: 7.1M pairs on 11 threads, 13.1\% of articles have
 a near-copy, output identical to the serial build.}\\[5pt]
-\includegraphics[width=0.93\textwidth]{ui_history.png}\\[-1pt]
+\includegraphics[width=0.86\textwidth]{ui_history.png}\\[-1pt]
 {\footnotesize (b) History tab: saved verifications that can be reopened, re-run or deleted; WEB marks checks that used web
 search, and \checkmark/$\times$ marks whether a FEVER answer matched the gold label.}
 \caption{Corpus-level and history views.}
@@ -883,7 +912,6 @@ pinned, homogeneous multi-socket server; use float16 or int8 embeddings to raise
 top-$M$ so batching pays off at large $M$; and generated justifications grounded in the cited clusters.
 
 % =====================================================================================================
-\balance
 \begin{thebibliography}{99}
 \bibitem{guo2022} Z.~Guo, M.~Schlichtkrull, and A.~Vlachos, ``A survey on automated fact-checking,'' \emph{Trans.\
 Assoc.\ Comput.\ Linguistics}, vol.~10, pp.~178--206, 2022.
