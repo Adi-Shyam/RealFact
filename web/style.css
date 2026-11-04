@@ -88,11 +88,16 @@ section.tab.active { display: block; }
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px 20px; }
 .card + .card, .stack > * + * { margin-top: 16px; }
 .grid { display: grid; gap: 16px; }
+/* Grid and stack children must be allowed to shrink below their content width, otherwise wide
+   content (charts, the pipeline strip, long lines) pushes the column past the card edge. */
+.grid > *, .verdict-wrap > *, .stack > *, .lesson > * { min-width: 0; }
 .g2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.g3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+/* Tiles fill each row instead of leaving one tile alone on a second row. */
+.g3 { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
 .g4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-@media (max-width: 900px) { .g3, .g4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 640px) { .g2, .g3, .g4 { grid-template-columns: 1fr; } main { padding: 16px 16px 60px; } .top-inner { padding: 10px 16px 0; } }
+@media (max-width: 1000px) { .g2 { grid-template-columns: 1fr; } }
+@media (max-width: 900px) { .g4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .g3, .g4 { grid-template-columns: 1fr; } main { padding: 16px 16px 60px; } .top-inner { padding: 10px 16px 0; } }
 .section-head { display: flex; align-items: flex-end; gap: 12px; margin: 28px 0 12px; flex-wrap: wrap; }
 .section-head:first-child { margin-top: 0; }
 .section-head p { margin: 0; color: var(--ink-3); font-size: 13px; }
@@ -130,7 +135,7 @@ details.params summary { cursor: pointer; font-size: 13px; color: var(--ink-2); 
 .param-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin-top: 10px; }
 
 /* ---------- verdict ---------- */
-.verdict-wrap { display: grid; grid-template-columns: 320px 1fr; gap: 16px; }
+.verdict-wrap { display: grid; grid-template-columns: minmax(260px, 320px) minmax(0, 1fr); gap: 16px; }
 @media (max-width: 900px) { .verdict-wrap { grid-template-columns: 1fr; } }
 .verdict { border-radius: var(--radius); padding: 20px; border: 1px solid var(--line); }
 .verdict .v-label { font: 700 28px/1.1 var(--serif); margin: 6px 0 4px; }
@@ -160,6 +165,12 @@ details.params summary { cursor: pointer; font-size: 13px; color: var(--ink-2); 
 .pipe .stage .nm { font-size: 13px; font-weight: 600; }
 .pipe .stage .tag { position: absolute; top: -8px; right: 8px; background: var(--novel); color: #fff; font-size: 10px; padding: 1px 6px; border-radius: 6px; font-weight: 600; }
 .pipe .arrow { align-self: center; color: var(--ink-3); flex: 0 0 auto; }
+/* Narrower screens: wrap the stages onto rows instead of hiding the last ones off the card edge. */
+@media (max-width: 1100px) {
+  .pipe { flex-wrap: wrap; overflow-x: visible; row-gap: 14px; }
+  .pipe .stage { flex: 1 1 130px; }
+  .pipe .arrow { display: none; }
+}
 
 /* ---------- evidence ---------- */
 .ev { border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; background: var(--surface); }
@@ -190,7 +201,7 @@ details.params summary { cursor: pointer; font-size: 13px; color: var(--ink-2); 
 table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
 th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
 th { font-weight: 600; color: var(--ink-2); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; background: var(--surface-2); }
-td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; font-family: var(--mono); font-size: 12.5px; }
+td.num, th.num { white-space: nowrap; text-align: right; font-variant-numeric: tabular-nums; font-family: var(--mono); font-size: 12.5px; }
 tr.ours td { background: var(--accent-soft); }
 tr.ours td:first-child { box-shadow: inset 3px 0 0 var(--accent); font-weight: 600; }
 .yes { color: var(--sup); font-weight: 600; }
@@ -224,7 +235,8 @@ tr.ours td:first-child { box-shadow: inset 3px 0 0 var(--accent); font-weight: 6
 
 .progress { height: 6px; border-radius: 4px; background: var(--surface-2); overflow: hidden; margin-top: 8px; }
 .progress i { display: block; height: 100%; background: var(--accent); width: 0; transition: width .3s; }
-.chart-box { position: relative; height: 280px; }
+.chart-box { position: relative; height: 280px; min-width: 0; }
+.chart-box canvas { max-width: 100%; }
 .empty { text-align: center; color: var(--ink-3); padding: 40px 10px; }
 .spinner { width: 16px; height: 16px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; display: inline-block; animation: spin .7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }

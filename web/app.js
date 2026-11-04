@@ -215,17 +215,18 @@ function evidenceCard(e, p) {
 function retrieveDiagram() {
   const pal = ["var(--con)", "var(--sup)", "var(--conf)", "var(--accent)", "#8e5bd3", "#2aa3a3", "#c4572b", "#6b8e23", "#d14d8a", "#5a6acf"];
   const box = (x, y, c, op = 1) => `<rect x="${x}" y="${y}" width="26" height="20" rx="4" fill="${c}" opacity="${op}"/>`;
-  const row = (y, colors, ops) => colors.map((c, i) => box(80 + i * 30, y, c, ops ? ops[i] : 1)).join("");
+  const row = (y, colors, ops) => colors.map((c, i) => box(128 + i * 30, y, c, ops ? ops[i] : 1)).join("");
   const exist = ["var(--con)", "var(--con)", "var(--con)", "var(--con)", "var(--con)", "var(--con)", "var(--con)", "var(--sup)", "var(--conf)", "var(--accent)"];
   const existAfter = ["var(--con)", "var(--sup)", "var(--conf)", "var(--accent)", "var(--line)", "var(--line)", "var(--line)", "var(--line)", "var(--line)", "var(--line)"];
-  return `<svg viewBox="0 0 400 150" role="img" aria-label="Truncate-then-cluster vs retrieve-wide">
-    <text x="0" y="22" font-size="11" fill="var(--ink-2)">Existing</text><text x="0" y="35" font-size="9" fill="var(--ink-3)">top-K</text>
+  // Labels sit in their own 128-unit column; boxes run from x = 128 to 424; captions go under their row.
+  return `<svg viewBox="0 0 430 156" role="img" aria-label="Truncate-then-cluster vs retrieve-wide">
+    <text x="0" y="22" font-size="11" fill="var(--ink-2)">Existing</text><text x="0" y="35" font-size="9" fill="var(--ink-3)">top-K articles</text>
     ${row(12, exist)}
-    <text x="0" y="62" font-size="9" fill="var(--ink-3)">then cluster</text>${row(50, existAfter)}
-    <text x="385" y="64" font-size="10" fill="var(--con)" text-anchor="end">6 empty</text>
-    <text x="0" y="112" font-size="11" fill="var(--accent)" font-weight="600">RealFact</text><text x="0" y="125" font-size="9" fill="var(--ink-3)">top-M → cluster → top-K</text>
-    ${row(102, pal)}
-    <text x="385" y="145" font-size="10" fill="var(--sup)" text-anchor="end">10 independent stories</text>
+    <text x="0" y="64" font-size="9" fill="var(--ink-3)">then cluster</text>${row(50, existAfter)}
+    <text x="424" y="84" font-size="10" fill="var(--con)" text-anchor="end">6 slots empty</text>
+    <text x="0" y="114" font-size="11" fill="var(--accent)" font-weight="600">RealFact</text><text x="0" y="127" font-size="9" fill="var(--ink-3)">top-M → cluster → top-K</text>
+    ${row(104, pal)}
+    <text x="424" y="140" font-size="10" fill="var(--sup)" text-anchor="end">10 independent stories</text>
   </svg>`;
 }
 $("#diag-retrieve").innerHTML = retrieveDiagram();
@@ -426,8 +427,8 @@ function courseSection(res) {
   <div class="grid g2" style="margin-top:16px">
     <div class="card"><h3>Load balance: per-thread busy time (${lb[0].threads} threads, N = ${cs.N.toLocaleString()})</h3>
       <div class="chart-box"><canvas id="ch-lb"></canvas></div>
-      <table class="small" style="margin-top:8px"><thead><tr><th>Schedule</th><th class="num">kernel ms</th><th class="num">max/mean busy</th><th class="num">idle %</th><th class="num">rows min–max</th></tr></thead>
-      <tbody>${lb.map((r) => `<tr><td>${r.schedule}${r.chunk ? ` (chunk ${r.chunk})` : ""}</td><td class="num">${fmt(r.kernel_ms, 2)}</td><td class="num">${fmt(r.imbalance, 2)}</td><td class="num">${fmt(r.idle_pct, 0)}%</td><td class="num">${Math.min(...r.rows).toLocaleString()}–${Math.max(...r.rows).toLocaleString()}</td></tr>`).join("")}</tbody></table>
+      <div class="tbl-wrap" style="margin-top:8px"><table class="small"><thead><tr><th>Schedule</th><th class="num">kernel ms</th><th class="num">max/mean busy</th><th class="num">idle %</th><th class="num">rows min–max</th></tr></thead>
+      <tbody>${lb.map((r) => `<tr><td>${r.schedule}${r.chunk ? ` (chunk ${r.chunk})` : ""}</td><td class="num">${fmt(r.kernel_ms, 2)}</td><td class="num">${fmt(r.imbalance, 2)}</td><td class="num">${fmt(r.idle_pct, 0)}%</td><td class="num">${Math.min(...r.rows).toLocaleString()}–${Math.max(...r.rows).toLocaleString()}</td></tr>`).join("")}</tbody></table></div>
       <p class="tiny muted" style="margin:8px 0 0">The chart leaves out configurations more than 3× slower than the best (dynamic, chunk 1). Static gives every thread the same number of rows, so threads on slower efficiency cores finish last. Guided hands out shrinking chunks, so fast cores take more rows (see the rows column) and finish together. Dynamic with chunk 1 balances well, but every row costs an atomic counter update.</p></div>
     <div class="card"><h3>Chunk-size sweep (${cs.threads} threads, N = ${cs.N.toLocaleString()})</h3>
       <div class="chart-box"><canvas id="ch-chunk"></canvas></div>
