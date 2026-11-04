@@ -20,9 +20,7 @@
     </div>
     <nav class="tabs" id="tabs">
       <button data-tab="verify" class="active">Verify a claim</button>
-      <button data-tab="survey">What we learned (survey)</button>
       <button data-tab="compare">Existing vs RealFact</button>
-      <button data-tab="method">Methodology</button>
       <button data-tab="bench">Parallel benchmark</button>
       <button data-tab="corpus">Live corpus</button>
       <button data-tab="eval">Evaluation</button>
@@ -47,56 +45,6 @@
     </details>
   </div>
   <div id="verify-out" style="margin-top:16px"></div>
-</section>
-
-<!-- ======================================================= SURVEY -->
-<section class="tab" id="tab-survey">
-  <div class="card">
-    <div class="eyebrow">Reference paper</div>
-    <h2 style="margin-top:6px">A Survey on Automated Fact-Checking</h2>
-    <p class="muted" style="margin-top:4px">Zhijiang Guo, Michael Schlichtkrull, Andreas Vlachos. <em>Transactions of the Association for Computational Linguistics</em>, vol. 10, pp. 178–206, 2022. <a href="https://direct.mit.edu/tacl/article/doi/10.1162/tacl_a_00454/109469/A-Survey-on-Automated-Fact-Checking" target="_blank" rel="noopener">doi:10.1162/tacl_a_00454</a></p>
-    <p style="margin-top:12px">The survey brings automated fact-checking work into one framework of four stages. Below, our project's scope is placed in that framework. It is followed by each idea we took from the survey and the RealFact design decision it led to, with a link to where you can see that decision working in this app.</p>
-    <div class="framework">
-      <div class="fw"><span class="scope">out of scope</span><h4>1 · Claim detection</h4><p>Finding check-worthy claims in a text stream. We take the user's claim as given.</p></div>
-      <div class="fw in"><span class="scope">RealFact</span><h4>2 · Evidence retrieval</h4><p>BGE embeddings + exact OpenMP scan over a live multi-outlet corpus, retrieve-wide then cluster.</p></div>
-      <div class="fw in"><span class="scope">RealFact</span><h4>3 · Verdict prediction</h4><p>NLI stance per independent cluster → independence-weighted, four-way verdict.</p></div>
-      <div class="fw"><span class="scope">partial</span><h4>4 · Justification production</h4><p>We do not generate explanations; each verdict comes with the evidence it cites and every cluster's signed contribution.</p></div>
-    </div>
-    <p class="cite">Framework stages as defined in Guo et al. (2022), §2. Our methodology §I-A restricts the project to stages 2 and 3.</p>
-  </div>
-
-  <div class="section-head"><h2>Lessons from the survey → RealFact design</h2><p>Left: the survey's point · right: our response</p></div>
-  <div class="card" id="lessons"></div>
-
-  <div class="section-head"><h2>Open challenges the survey names, and our position</h2></div>
-  <div class="card tbl-wrap">
-    <table>
-      <thead><tr><th>Challenge discussed in the survey</th><th>Does RealFact address it?</th><th>How / why not</th></tr></thead>
-      <tbody>
-        <tr><td>Evidence may conflict or be untrustworthy; most pipelines assume one authoritative source</td><td class="yes">Yes</td><td>Conflicting Evidence is a first-class verdict (band δ &lt; D &lt; 1−δ), and syndicated copies are not counted as independent witnesses.</td></tr>
-        <tr><td>Label choice: fine-grained ratings (e.g. “half-true”) are meta-ratings over composite claims</td><td class="yes">Yes</td><td>LIAR's middle band is reported separately and treated as closer to Conflicting than to Neutral (methodology §I-B).</td></tr>
-        <tr><td>Dataset artefacts: FEVER-trained models can key on claim wording instead of the evidence</td><td class="part">Mitigated</td><td>Results are reported on LIAR and FakeNewsNet next to FEVER. This is listed as threat to validity #3.</td></tr>
-        <tr><td>Evidence leakage: the claim's own source or fact-check is retrieved as “evidence”</td><td class="yes">Yes</td><td>Leakage control drops the source article and anything sharing its dedup key before the scan (engine <code>exclude</code> mask).</td></tr>
-        <tr><td>Real-world deployment needs up-to-date evidence, not a frozen snapshot</td><td class="yes">Yes</td><td>The evidence pool is ingested from permitted RSS feeds and refreshed on a timer. Benchmarks run against a frozen snapshot.</td></tr>
-        <tr><td>Explainability and faithful justifications</td><td class="part">Partial</td><td>Verdicts show their cited evidence and each cluster's term w·p·σ. We do not generate free-text justifications.</td></tr>
-        <tr><td>Multimodal and multilingual claims</td><td class="no">No</td><td>The project handles English text only; other languages are dropped at ingestion.</td></tr>
-        <tr><td>Efficiency and scalability (rarely reported: systems are judged on accuracy alone)</td><td class="yes">Our contribution</td><td>The exact similarity kernel is parallelised with OpenMP and benchmarked across schedules × threads × corpus size, and its results are checked bit-for-bit against a serial build.</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="section-head"><h2>Other references used</h2></div>
-  <div class="card small">
-    <ul class="clean">
-      <li><b>FEVER</b>: Thorne, Vlachos, Christodoulopoulos, Mittal, NAACL-HLT 2018. Gave us the retrieve-then-classify formulation and the SUPPORTED / REFUTED / NEI labels.</li>
-      <li><b>LIAR</b>: Wang, ACL 2017. Short political statements on a six-way scale, collapsed to three classes.</li>
-      <li><b>FakeNewsNet</b>: Shu et al., Big Data 2020. Full news articles with source URLs; the only benchmark that contains syndicated copies.</li>
-      <li><b>BGE / C-Pack</b>: Xiao et al., 2023. <code>BAAI/bge-small-en-v1.5</code>, 384-d unit-normalised embeddings.</li>
-      <li><b>OpenMP API 5.2</b>: <code>#pragma omp parallel for schedule(runtime)</code> with static / dynamic / guided schedules.</li>
-      <li><b>Roofline</b>: Williams, Waterman, Patterson, CACM 2009. At 0.5 flop/byte the scan is memory-bound, which predicts where speedup will flatten.</li>
-      <li><b>HoVer, IMRRF</b>: multi-hop evidence retrieval and reasoning for fact verification. Like the others, they report accuracy but not multicore latency.</li>
-    </ul>
-  </div>
 </section>
 
 <!-- ======================================================= COMPARE -->
@@ -151,65 +99,6 @@
     </div>
   </div>
   <div class="callout" style="margin-top:16px">Try it live: verify a claim, then press <b>“Simulate syndication ×10”</b> on any evidence card. The verdict table under the result shows how naive counting and filter-off retrieval (the existing approach) shift while RealFact's independence-weighted verdict holds.</div>
-</section>
-
-<!-- ======================================================= METHOD -->
-<section class="tab" id="tab-method">
-  <div class="section-head"><h2>End-to-end pipeline</h2><p>Blue stages are this project's novel contributions</p></div>
-  <div class="card diagram" id="diag-pipeline"></div>
-
-  <div class="grid g2" style="margin-top:16px">
-    <div class="card">
-      <h3>Retrieval (§II-B)</h3>
-      <p class="small">All vectors are unit-normalised, so cosine similarity reduces to a dot product. The scan is exhaustive and exact. We use brute force rather than ANN on purpose: an ANN index would change <em>what</em> is retrieved between configurations, which would mix a recall change into the speedup measurement.</p>
-      <div class="formula">s<sub>i</sub> = cos(q, v<sub>i</sub>) = qᵀv<sub>i</sub>,  v<sub>i</sub> ∈ ℝ³⁸⁴</div>
-      <h3 style="margin-top:14px">Parallelisation (§II-E)</h3>
-      <ul class="clean small">
-        <li><code>#pragma omp parallel for schedule(runtime)</code> over the corpus index</li>
-        <li>Private top-M min-heap per thread, padded to a 64-byte cache line (no false sharing)</li>
-        <li>Serial merge of the P heaps, independent of N. We concatenate and use <code>nth_element</code> (O(P·M + M log M)) instead of the planned heap merge (O(P·M·log M)), with identical output. This cut the Amdahl serial fraction at 16 threads.</li>
-        <li>One contiguous row-major N × 384 float32 matrix, so each thread reads a unit-stride stream</li>
-        <li>Ties broken by index, so IDs are bit-identical across all configurations</li>
-      </ul>
-    </div>
-    <div class="card">
-      <h3>Aggregation (§II-D)</h3>
-      <div class="formula">w<sub>c</sub> = 1 + λ log₂ n<sub>c</sub>,  λ ∈ [0, 1]</div>
-      <div class="formula" style="margin-top:8px">S = Σ w<sub>c</sub>p<sub>c</sub>σ<sub>c</sub> / Σ w<sub>c</sub>p<sub>c</sub>     D = Σ<sub>σ=+1</sub> w<sub>c</sub>p<sub>c</sub> / Σ<sub>σ≠0</sub> w<sub>c</sub>p<sub>c</sub></div>
-      <p class="small" style="margin-top:10px">σ<sub>c</sub> ∈ {+1, −1, 0} is the NLI stance of cluster c's representative and p<sub>c</sub> its confidence. S is the net signed stance. D is the share of non-neutral weight on the supporting side.</p>
-      <h3 style="margin-top:14px">Preprocessing (§I-C)</h3>
-      <ul class="clean small">
-        <li>HTML / boilerplate stripping, whitespace normalisation, English-only filter</li>
-        <li>Exact-duplicate hash on (source domain, normalised headline), applied before embedding</li>
-        <li>BGE-small-en-v1.5, 512-token limit: an article is represented by its lead</li>
-        <li>Leakage control: a benchmark claim's own article is removed from the pool before the scan</li>
-      </ul>
-    </div>
-  </div>
-
-  <div class="section-head"><h2>Datasets and label harmonisation</h2></div>
-  <div class="card tbl-wrap">
-    <table>
-      <thead><tr><th>Dataset</th><th>Role</th><th>Size</th><th>Mapped to 3-way</th></tr></thead>
-      <tbody>
-        <tr><td>FEVER</td><td>Verification quality (train / tune)</td><td>185,445 claims (145,449 / 19,998 / 19,998)</td><td>SUPPORTED → SUPPORT, REFUTED → CONTRADICT, NEI → NEUTRAL</td></tr>
-        <tr><td>LIAR</td><td>Generalisation to short political claims</td><td>12,836 statements, 80/10/10</td><td>true, mostly-true → SUPPORT; false, pants-fire → CONTRADICT; half-true, barely-true → NEUTRAL (reported separately)</td></tr>
-        <tr><td>FakeNewsNet</td><td>Real-world news; the only source of syndication</td><td>23,196 items, 70/10/20 grouped by duplicate cluster</td><td>Headline as claim; real → SUPPORT, fake → CONTRADICT; also merged not-supported</td></tr>
-        <tr class="ours"><td>Live corpus</td><td>Unlabelled evidence pool searched by the OpenMP engine</td><td id="live-size">…</td><td>Title, lead, timestamp, source domain (permitted RSS)</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="section-head"><h2>Threats to validity (§III-E)</h2></div>
-  <div class="card small">
-    <ol class="clean">
-      <li>Using the headline as the claim on FakeNewsNet is a proxy, and it biases the task toward claims checkable from a headline.</li>
-      <li>Embedding similarity can't tell syndication from independent outlets reporting the same wire fact, so the filter's measured effect is an upper bound.</li>
-      <li>FEVER-trained models can key on claim wording, so FEVER accuracy alone doesn't prove that retrieval is doing the work.</li>
-      <li>The live corpus changes between runs, so timings are taken on a frozen snapshot.</li>
-      <li><b>Observed in this prototype:</b> NLI models label off-topic premises as “contradiction”. We gate evidence with a relevance floor (cos ≥ 0.68 by default, adjustable) before NLI.</li>
-    </ol>
-  </div>
 </section>
 
 <!-- ======================================================= BENCH -->

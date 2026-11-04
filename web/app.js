@@ -51,7 +51,6 @@ async function pollStatus() {
     $("#st-dot").className = "dot " + (STATUS.ingesting ? "busy" : "ok");
     $("#st-text").textContent = `${STATUS.corpus_size.toLocaleString()} articles · ${STATUS.feeds} feeds · ${STATUS.max_threads} OpenMP threads` +
       (STATUS.ingesting ? " · ingesting…" : "");
-    $("#live-size").textContent = `${STATUS.corpus_size.toLocaleString()} articles now (refreshed every ${STATUS.refresh_minutes} min); synthetic up to 500K for scaling`;
   } catch (e) {
     $("#st-dot").className = "dot";
     $("#st-text").textContent = "server offline";
@@ -212,40 +211,6 @@ function evidenceCard(e, p) {
   </div>`;
 }
 
-/* ------------------------------------------------------------------ survey lessons */
-const LESSONS = [
-  ["Fact-checking is a pipeline, not one classifier",
-    "The survey splits automated fact-checking into claim detection, evidence retrieval, verdict prediction and justification production, and treats verification as reasoning over retrieved evidence.",
-    "RealFact implements retrieval and verdict prediction as separate, separately timed stages. Our verdicts come from evidence, not from the writing style of the claim.", "Verify → pipeline strip"],
-  ["Claim-only models cannot really verify",
-    "Datasets such as LIAR offer no evidence documents, so models trained on them learn from the claim's surface and metadata. The survey distinguishes these from evidence-based settings.",
-    "Every verdict is computed from retrieved articles and lists them. If nothing relevant is retrieved, the system answers Unverified instead of guessing.", "Verify → Cited evidence"],
-  ["Real evidence conflicts and sources are not equally trustworthy",
-    "The survey names it an open problem that most systems assume a single, trustworthy evidence source and do not handle contradictory or unreliable evidence.",
-    "Conflicting Evidence is a first-class verdict, and copies of one report are discounted with w = 1 + λ·log₂n so a syndicated story can't pose as many independent witnesses.", "Verify → verdict table / Simulate syndication"],
-  ["Fine-grained truth ratings are meta-ratings",
-    "Labels like “half-true” usually rate a composite claim whose parts differ in truth, rather than marking one intermediate truth value.",
-    "LIAR's middle band is reported separately and read as closer to our Conflicting verdict than to Neutral (methodology §I-B).", "Evaluation → LIAR breakdown"],
-  ["Insufficient evidence is a valid outcome",
-    "Following FEVER's NOT ENOUGH INFO class, the survey treats “cannot be verified from the evidence” as a label in its own right, not a failure.",
-    "Unverified is triggered by an explicit sufficiency threshold θ on polar evidence mass, and a relevance floor stops off-topic text from counting as evidence.", "Verify → θ in the verdict card"],
-  ["Datasets have artefacts and leakage",
-    "The survey warns that artificially written claims (e.g. FEVER) let models exploit claim-only cues, and that evidence gathered from the web can leak the answer (such as the claim's own source or fact-check).",
-    "We report on FEVER, LIAR and FakeNewsNet side by side, and the engine applies a leakage mask so a claim can't retrieve its own article.", "Methodology → Threats; engine exclude mask"],
-  ["Fact-checking needs current evidence",
-    "Most benchmarks are built on static snapshots like a Wikipedia dump, while real claims are about recent events.",
-    "Evidence comes from permitted live RSS feeds of 25+ outlets, re-ingested on a timer. Each article keeps its timestamp and source domain.", "Live corpus tab"],
-  ["Systems are judged on accuracy alone",
-    "The surveyed systems and benchmarks report accuracy, F1 and evidence recall. Latency and multicore scalability are rarely discussed.",
-    "We add a second, independently falsifiable axis: an OpenMP retrieval kernel measured across schedules × threads × corpus size, checked bit-for-bit against serial.", "Parallel benchmark tab"],
-];
-$("#lessons").innerHTML = LESSONS.map(([h, from, to, where]) => `
-  <div class="lesson">
-    <div class="from"><div class="eyebrow">Survey</div><h4>${h}</h4><p>${from}</p></div>
-    <div class="mid">→</div>
-    <div class="to"><div class="eyebrow" style="color:var(--accent)">RealFact</div><p>${to}</p><div class="where">See it: ${where}</div></div>
-  </div>`).join("");
-
 /* ------------------------------------------------------------------ diagrams */
 function retrieveDiagram() {
   const pal = ["var(--con)", "var(--sup)", "var(--conf)", "var(--accent)", "#8e5bd3", "#2aa3a3", "#c4572b", "#6b8e23", "#d14d8a", "#5a6acf"];
@@ -265,20 +230,6 @@ function retrieveDiagram() {
 }
 $("#diag-retrieve").innerHTML = retrieveDiagram();
 
-function pipelineDiagram() {
-  const st = (nm, sub, nov) => `<div class="stage ${nov ? "novel" : ""}">${nov ? '<span class="tag">novel</span>' : ""}<div class="nm">${nm}</div><div class="tiny muted">${sub}</div></div>`;
-  const ar = '<span class="arrow">→</span>';
-  return `
-    <div class="eyebrow" style="margin-bottom:8px">Phase 1: build the evidence index (at ingestion)</div>
-    <div class="pipe">${[st("Live RSS feeds + benchmarks", "FEVER · LIAR · FakeNewsNet"), st("Clean + exact-dup hash", "domain | headline, leakage control"), st("BGE-small-en-v1.5", "d = 384, first 512 tokens"), st("Cached N × 384 matrix", "contiguous, row-major float32")].join(ar)}</div>
-    <div class="eyebrow" style="margin:18px 0 8px">Phase 2: verify a claim</div>
-    <div class="pipe">${[st("Input claim", "embed with BGE → q"), st("OpenMP exact scan", "sᵢ = q·vᵢ → top-M (M = 10K ≫ K)", true), st("Cluster duplicates", "sim > τ → top-K clusters", true), st("NLI per cluster", "SUPPORT / CONTRADICT / NEUTRAL"), st("Weighted aggregation", "w = 1 + λ log₂ n", true), st("Cited 4-way verdict", "Supported · Contradicted · Conflicting · Unverified", true)].join(ar)}</div>
-    <div style="margin:14px 0 0 calc(16.6% + 10px);border:1.5px dashed var(--line);border-radius:10px;padding:10px 12px;max-width:520px">
-      <div class="eyebrow">Benchmarking arm: timing only</div>
-      <div class="small">static / dynamic / guided × 1–16 threads · corpus 10K → 500K → speedup, efficiency, throughput, p95, CPU utilisation, Wilcoxon</div>
-    </div>`;
-}
-$("#diag-pipeline").innerHTML = pipelineDiagram();
 
 /* ------------------------------------------------------------------ charts */
 function baseOpts(xTitle, yTitle, extra = {}) {
