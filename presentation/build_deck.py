@@ -241,19 +241,19 @@ rr = sp.add_run(); rr.text = names; rr.font.size = Pt(13); rr.font.color.rgb = N
 sp2 = sub.text_frame.add_paragraph(); sp2.alignment = PP_ALIGN.CENTER
 rr = sp2.add_run(); rr.text = "IT 301 Parallel Computing  ·  Department of Information Technology, NIT Karnataka, Surathkal"
 rr.font.size = Pt(12); rr.font.color.rgb = GRAY
-# small verdict chips as a visual signature
-chips = [("Supported", GREEN), ("Contradicted", RED), ("Conflicting Evidence", AMBER), ("Unverified", GRAY)]
-cx = 1.55
-for lab, col in chips:
-    w = 0.32 + 0.085 * len(lab)
-    b = box(s, cx, 4.45, w, 0.36, fill=WHITE, line=col, radius=0.5)
-    text(s, cx, 4.45, w, 0.36, [[(lab, {"bold": True, "color": col, "size": 11})]], align=PP_ALIGN.CENTER,
-         anchor=MSO_ANCHOR.MIDDLE)
-    cx += w + 0.22
+# NIT Karnataka logo, centred above the title
+import os
+logo_h = 1.25
+logo_w = logo_h * 325 / 307
+s.shapes.add_picture(os.path.join(os.path.dirname(os.path.abspath(__file__)), "nitk_logo.png"),
+                     Inches((10 - logo_w) / 2), Inches(0.85), height=Inches(logo_h))
+for ph in (s.shapes.title, sub):  # centre the block vertically; set the full frame so width is kept
+    l_, t_, w_, h_ = ph.left, ph.top, ph.width, ph.height
+    ph.left, ph.top, ph.width, ph.height = l_, t_ + Inches(0.45), w_, h_
 s.notes_slide.notes_text_frame.text = (
     "Good morning. Our project is RealFact: a system that checks whether a news claim is supported by live news, "
-    "and does the heavy similarity work in parallel with OpenMP. The four coloured labels are the four answers it can "
-    "give: Supported, Contradicted, Conflicting Evidence, or Unverified.")
+    "and does the heavy similarity work in parallel with OpenMP. It answers with one of four verdicts: Supported, "
+    "Contradicted, Conflicting Evidence, or Unverified.")
 
 # ================================================================== 2. Problem statement
 s = title_slide("Problem Statement")
