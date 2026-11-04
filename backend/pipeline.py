@@ -7,6 +7,7 @@ aggregation -> four-way cited verdict.
 Ablations from §III-A are computed from the same retrieval so the UI can show them side by side.
 """
 import math
+import re
 import time
 
 import numpy as np
@@ -67,6 +68,33 @@ def greedy_cluster(V, tau, max_clusters):
         ok = sims[np.arange(sims.shape[0]), best] > tau
         assign[j:][ok] = best[ok]
     return leaders, assign
+
+
+SENT_RE = re.compile(r"(?<=[.!?])\s+(?=[A-Z0-9\"'(])")
+
+
+def split_sentences(text):
+    return [x for x in SENT_RE.split(text or "") if len(x) > 3] or [text or ""]
+
+
+def nli_stances(claim, arts, model, unit):
+    """One stance per article. unit = "lead": NLI on title + lead. unit = "sentence": NLI on title + each
+    sentence and keep the sentence whose top polar probability (support or contradict) is highest,
+    as FEVER systems select evidence sentences. Returns (stances, chosen sentence or None)."""
+    if unit != "sentence":
+        return models.classify(claim, [f"{a['title']}. {a['summary']}" for a in arts], model), [None] * len(arts)
+    pairs, owner = [], []
+    for k, a in enumerate(arts):
+        for snt in split_sentences(a["summary"]):
+            pairs.append((claim, f"{a['title']}. {snt}"))
+            owner.append((k, snt))
+    res = models.classify_pairs(pairs, model)
+    best = {}
+    for (k, snt), r in zip(owner, res):
+        polar = max(r[3]["SUPPORT"], r[3]["CONTRADICT"])
+        if k not in best or polar > best[k][0]:
+            best[k] = (polar, r, snt)
+    return [best[k][1] for k in range(len(arts))], [best[k][2] for k in range(len(arts))]
 
 
 def aggregate(items, theta, delta):
@@ -141,7 +169,11 @@ def verify(store, claim, req=None, defaults=None):
     s_idx, _, serial_s = serial_engine().topm(emb, q, p["M"], exclude=exclude)
     ids_match = bool(np.array_equal(idx, s_idx))
 
-    keep = scores >= p["min_rel"]
+    # Absolute relevance floor, and optionally a relative one: only candidates close to the best match.
+    floor = p["min_rel"]
+    if p["rel_cut"] < 1.0 and len(scores):
+        floor = max(floor, float(scores[0]) - p["rel_cut"])
+    keep = scores >= floor
     cand_idx, cand_scores = idx[keep], scores[keep]
 
     # --- Retrieve-wide clustering ---------------------------------------------------------
@@ -165,9 +197,10 @@ def verify(store, claim, req=None, defaults=None):
     arts = store.articles(wanted - set(synthetic))
     arts.update({r: synthetic[r] for r in wanted if r in synthetic})
     t = time.perf_counter()
-    stances = models.classify(claim, [f"{arts[r]['title']}. {arts[r]['summary']}" for r in nli_rows], p["nli_model"])
+    stances, chosen = nli_stances(claim, [arts[r] for r in nli_rows], p["nli_model"], p["nli_unit"])
     timings["nli"] = time.perf_counter() - t
     stance_of = dict(zip(nli_rows, stances))
+    sentence_of = dict(zip(nli_rows, chosen))
     score_of = {int(i): float(s) for i, s in zip(cand_idx, cand_scores)}
 
     # --- Build evidence + aggregate under every mode -------------------------------------------
@@ -181,7 +214,7 @@ def verify(store, claim, req=None, defaults=None):
         evidence.append({
             "rank": rank + 1, "rep": _article_view(arts[row], score_of[row]), "n_c": n_c,
             "domains": sorted({m["domain"] for m in members}), "members": members,
-            "sigma": sigma, "label": label, "p": prob, "probs": probs,
+            "sigma": sigma, "label": label, "p": prob, "probs": probs, "nli_sentence": sentence_of[row],
             "w_log": 1 + p["lam"] * math.log2(n_c), "w_one": 1.0, "w_naive": float(n_c),
         })
 

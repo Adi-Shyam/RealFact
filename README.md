@@ -56,7 +56,10 @@ curl -L -o data/datasets/fever/wiki-pages.zip https://fever.ai/download/fever/wi
 
 - **Claim selection:** 60 SUPPORTS, 59 REFUTES and 60 NOT ENOUGH INFO claims. SUPPORTS and REFUTES claims are kept only when their evidence is one sentence within the first 4 sentences of one page, because the index embeds each page's lead.
 - **NLI model:** the FEVER corpus uses `MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli`, which is trained on FEVER's train split; the demo claims come from dev. Live news keeps the smaller `nli-deberta-v3-xsmall`.
-- **Results on the 179 demo claims:** 74.3% accuracy (macro F1 0.741), versus 58.7% with the xsmall model. The gold page was retrieved within the top cluster for 89.1% of verifiable claims, and within the top 5 for 95.0%.
+- **Tuning without touching the test claims:** `scripts/fever_tune_split.py` draws 180 *other* dev claims (60 per label) whose evidence pages are already in the corpus and that share no claim or gold page with the demo claims. `scripts/fever_tune.py` compares NLI models, evidence granularity and thresholds on that split only. Chosen: sentence-level NLI (each sentence of a page is checked and the most decisive one is used), a relative cutoff (keep stories within 0.04 cosine of the best match, still up to K = 10), θ = 0.8 and relevance floor 0.64. The larger `DeBERTa-v3-large-mnli-fever-anli-ling-wanli` was no better on the tuning split and 2–3× slower, so the base model stays.
+- **Results on the 179 demo claims (scored once, after tuning):** **81.0%** accuracy, macro F1 0.807 (per class: SUPPORTS 0.871, REFUTES 0.800, NOT ENOUGH INFO 0.750). The gold page is the top kept cluster for 92.4% of verifiable claims. Median 114 ms per claim. The tuning split scores 83.9%.
+- **Before tuning,** the same claims scored 74.3% (macro F1 0.741) with paragraph-level NLI and news thresholds, and 58.7% with the xsmall model. The remaining errors are mostly NOT ENOUGH INFO claims called Contradicted (15 of 60): they name real entities whose pages partly conflict with the claim.
+- These settings apply to the FEVER corpus only. Live news keeps its defaults, since it has no labelled data to tune or test on.
 - **Scope:** this is a demo slice selected to suit a lead-only index, so it is not comparable to published full-FEVER scores.
 
 ## Second parallel kernel: all-pairs syndication detection and clustering

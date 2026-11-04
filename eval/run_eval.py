@@ -105,6 +105,7 @@ def main():
     ap.add_argument("--path", default=None, help="dataset file; fever-demo defaults to data/fever/demo_claims.json")
     ap.add_argument("--limit", type=int, default=500)
     ap.add_argument("--seed", type=int, default=13)
+    ap.add_argument("--name", default=None, help="key under which results are saved (default: the dataset name)")
     a = ap.parse_args()
 
     loader = {"fever": load_fever, "fever-demo": load_fever_demo, "liar": load_liar,
@@ -144,7 +145,7 @@ def main():
         if (i + 1) % 25 == 0:
             print(f"{i + 1}/{len(items)}", flush=True)
 
-    report = {"dataset": a.dataset, "n": len(items), "corpus_size": store.size,
+    report = {"dataset": a.name or a.dataset, "n": len(items), "corpus_size": store.size,
               "finished_at": time.strftime("%Y-%m-%d %H:%M:%S"),
               "p95_latency_ms": float(np.percentile(lat, 95) * 1e3), "median_latency_ms": float(np.median(lat) * 1e3),
               "recall_at_k": ({f"@{k}": float(np.mean([r is not None and r <= k for r in ranks])) for k in (1, 5, 10)}
@@ -172,7 +173,7 @@ def main():
     if os.path.exists(path):
         with open(path) as f:
             allres = json.load(f)
-    allres[a.dataset] = report
+    allres[a.name or a.dataset] = report
     with open(path, "w") as f:
         json.dump(allres, f, indent=1)
     print(json.dumps({m: {"acc": report["modes"][m]["accuracy"], "macroF1": report["modes"][m]["macro_f1"]}

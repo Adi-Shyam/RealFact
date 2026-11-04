@@ -1,4 +1,5 @@
 """BGE-small-en-v1.5 sentence embeddings and a 3-way NLI cross-encoder. Both loaded lazily, once."""
+import os
 import threading
 
 import numpy as np
@@ -34,11 +35,14 @@ def embed_claim(claim):
     return v[0].astype(np.float32)
 
 
+NLI_DEVICE = os.environ.get("REALFACT_NLI_DEVICE", "cpu")  # "mps" uses the Apple GPU
+
+
 def nli_model(name=NLI_MODEL):
     with _lock:
         if name not in _nli:
             from sentence_transformers import CrossEncoder
-            model = CrossEncoder(name, device="cpu")
+            model = CrossEncoder(name, device=NLI_DEVICE)
             id2label = model.config.id2label if hasattr(model, "config") else model.model.config.id2label
             _nli[name] = (model, [id2label[i].lower() for i in range(len(id2label))])
     return _nli[name]
@@ -48,8 +52,15 @@ def classify(claim, premises, model_name=NLI_MODEL):
     """NLI(premise=evidence, hypothesis=claim) -> list of (stance sigma in {+1,-1,0}, label, p, probs)."""
     if not premises:
         return []
+    return classify_pairs([(claim, p) for p in premises], model_name)
+
+
+def classify_pairs(pairs, model_name=NLI_MODEL):
+    """pairs: list of (claim, premise). NLI(premise=evidence, hypothesis=claim) for each pair."""
+    if not pairs:
+        return []
     model, labels = nli_model(model_name)
-    logits = model.predict([(p, claim) for p in premises], convert_to_numpy=True, show_progress_bar=False)
+    logits = model.predict([(p, c) for c, p in pairs], convert_to_numpy=True, show_progress_bar=False, batch_size=8)
     logits = np.atleast_2d(logits)
     probs = np.exp(logits - logits.max(axis=1, keepdims=True))
     probs /= probs.sum(axis=1, keepdims=True)

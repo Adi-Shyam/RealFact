@@ -63,14 +63,16 @@ const PARAM_META = [
   ["M", "M: retrieve-wide pool", "number"], ["K", "K: clusters kept", "number"],
   ["tau", "τ: duplicate threshold", "number", 0.01], ["lam", "λ: independence weight", "number", 0.05],
   ["theta", "θ: evidence sufficiency", "number", 0.05], ["delta", "δ: disagreement band", "number", 0.01],
-  ["min_rel", "relevance floor (cos)", "number", 0.01], ["threads", "threads (0 = auto)", "number"],
-  ["schedule", "OpenMP schedule", "select"],
+  ["min_rel", "relevance floor (cos)", "number", 0.01], ["rel_cut", "within this cos of best match (1 = off)", "number", 0.01],
+  ["nli_unit", "NLI evidence unit", "select", null, ["lead", "sentence"]],
+  ["threads", "threads (0 = auto)", "number"],
+  ["schedule", "OpenMP schedule", "select", null, ["static", "dynamic", "guided"]],
 ];
 
 function buildParams(defaults) {
-  $("#param-grid").innerHTML = PARAM_META.map(([k, label, type, step]) => {
+  $("#param-grid").innerHTML = PARAM_META.map(([k, label, type, step, opts]) => {
     if (type === "select")
-      return `<label class="field"><span>${label}</span><select data-p="${k}">${["static", "dynamic", "guided"].map((o) => `<option ${o === defaults[k] ? "selected" : ""}>${o}</option>`).join("")}</select></label>`;
+      return `<label class="field"><span>${label}</span><select data-p="${k}">${opts.map((o) => `<option ${o === defaults[k] ? "selected" : ""}>${o}</option>`).join("")}</select></label>`;
     return `<label class="field"><span>${label}</span><input type="number" data-p="${k}" value="${defaults[k]}" ${step ? `step="${step}"` : ""}></label>`;
   }).join("");
 }
@@ -296,7 +298,8 @@ function evidenceCard(e, p) {
       <div style="min-width:0">
         <div class="ev-title"><a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.title)}</a></div>
         <div class="ev-meta"><span>${esc(r.domain)}</span><span>${esc(date)}</span><span class="mono">cos ${fmt(r.score, 3)}</span>${r.origin === "web" ? '<span class="web-tag">WEB SEARCH</span>' : ""}${r.simulated ? '<span class="sim-tag">SIMULATED COPY</span>' : ""}</div>
-        ${r.summary ? `<div class="ev-sum">${esc(r.summary.slice(0, 320))}${r.summary.length > 320 ? "…" : ""}</div>` : ""}
+        ${e.nli_sentence ? `<div class="ev-sum"><span class="tiny muted">Sentence the NLI model used:</span> “${esc(e.nli_sentence)}”</div>`
+          : r.summary ? `<div class="ev-sum">${esc(r.summary.slice(0, 320))}${r.summary.length > 320 ? "…" : ""}</div>` : ""}
       </div>
       <div class="ev-right"><span class="stance s-${e.label}">${e.label}</span><div class="tiny muted" style="margin-top:4px">p = ${fmt(e.p)}</div>${probsBar(e.probs)}</div>
     </div>
@@ -692,10 +695,12 @@ async function loadEval() {
   if (!r) { $("#eval-out").innerHTML = `<div class="card empty" style="margin-bottom:16px">No evaluation results yet.</div>` + howto; return; }
   const modes = ["independence_log", "one_vote", "naive_count", "filter_off"];
   const names = { independence_log: "RealFact log-weighted", one_vote: "λ = 0", naive_count: "naive counting", filter_off: "filter off" };
-  $("#eval-out").innerHTML = Object.values(r).map((d) => `
+  const order = (d) => ({ "fever-demo": 0, "fever-tune": 1 }[d.dataset] ?? 2);
+  $("#eval-out").innerHTML = Object.values(r).sort((a, b) => order(a) - order(b)).map((d) => `
     <div class="card tbl-wrap">
-      <h3>${d.dataset === "fever-demo" ? "FEVER demo subset" : esc(d.dataset.toUpperCase())}: ${d.n} claims · corpus ${d.corpus_size.toLocaleString()} ${d.dataset === "fever-demo" ? "Wikipedia pages" : "articles"} · ${esc(d.finished_at)}</h3>
+      <h3>${d.dataset === "fever-demo" ? "FEVER demo subset (test claims)" : d.dataset === "fever-tune" ? "FEVER tuning split" : esc(d.dataset.toUpperCase())}: ${d.n} claims · corpus ${d.corpus_size.toLocaleString()} ${d.dataset.startsWith("fever-") ? "Wikipedia pages" : "articles"} · ${esc(d.finished_at)}</h3>
       <p class="small muted">median latency ${fmt(d.median_latency_ms, 1)} ms · p95 ${fmt(d.p95_latency_ms, 1)} ms · Recall@K (gold page in kept clusters): ${typeof d.recall_at_k === "object" ? Object.entries(d.recall_at_k).map(([k, v]) => `${k} ${fmt(v * 100, 1)}%`).join(" · ") : esc(d.recall_at_k)}${d.params && d.params.nli_model ? ` · NLI: <code>${esc(d.params.nli_model)}</code>` : ""}</p>
+      ${d.dataset === "fever-tune" ? `<p class="small" style="margin:0 0 8px">180 other FEVER dev claims, sharing no claim or gold page with the demo claims. The NLI evidence unit, the relative cutoff and the thresholds were chosen on this split; the demo claims were scored once afterwards.</p>` : ""}
       ${d.dataset === "fever-demo" ? `<p class="small" style="margin:0 0 8px">Curated FEVER dev claims whose evidence is in the first sentences of one page, verified against a 25K-page Wikipedia subset. This is a demo slice, not the full FEVER benchmark, so it is not comparable to published FEVER scores.</p>` : ""}
       ${(() => { const pc = d.modes.independence_log.per_class; const maj = Object.entries(pc).sort((a, b) => b[1].support - a[1].support)[0]; const unv = (d.modes.independence_log.verdict_counts.Unverified || 0) / d.n;
         return `<p class="small">Majority-class baseline (always ${maj[0]}): <b>${fmt((maj[1].support / d.n) * 100, 1)}%</b> · claims answered Unverified: <b>${fmt(unv * 100, 1)}%</b>${unv > 0.8 ? ". Most claims found no evidence in the current news corpus, so accuracy here measures corpus coverage, not reasoning quality." : ""}</p>`; })()}

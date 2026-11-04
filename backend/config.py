@@ -29,15 +29,19 @@ DEFAULTS = {
     "threads": 0,      # 0 -> auto: grain-size and bandwidth-aware (pipeline.auto_threads)
     "schedule": "guided",  # measured best on heterogeneous P/E cores (Parallel benchmark tab)
     "nli_model": NLI_MODEL,
+    "rel_cut": 1.0,    # keep candidates within rel_cut of the best match's cosine (1.0 = off)
+    "nli_unit": "lead",  # "lead": NLI on title + lead; "sentence": NLI per sentence, most decisive one used
 }
 
 # Per-corpus overrides of DEFAULTS. Similarity scales differ between news leads and Wikipedia leads,
 # so the relevance floor is calibrated per corpus (see scripts/build_fever_demo.py and the eval).
 CORPUS_DEFAULTS = {
     "live": {},
-    # FEVER-trained NLI (trained on FEVER's train split; the demo claims come from dev). On the 179 demo
-    # claims it scores 74.3% vs 58.7% for the xsmall model, at 167 vs 65 ms per claim.
-    "fever": {"min_rel": 0.68, "nli_model": "MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli"},
+    # FEVER demo. NLI model trained on FEVER's train split (demo claims come from dev). Sentence-level NLI,
+    # the relative cutoff and the thresholds were chosen on a held-out tuning split of 180 other dev claims
+    # (scripts/fever_tune_split.py, scripts/fever_tune.py), never on the 179 demo claims.
+    "fever": {"min_rel": 0.64, "theta": 0.8, "rel_cut": 0.04, "nli_unit": "sentence",
+              "nli_model": "MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli"},
 }
 
 # Permitted public RSS feeds (headline + lead only; we never scrape article pages).

@@ -22,3 +22,4 @@ data/fever/embeddings.f32
 .DS_Store
 .claude/
 data/history.sqlite
+data/fever/.tune_cache_*.pkl

@@ -106,8 +106,8 @@ naive duplicate counting and plain top-$K$ retrieval flip a contested claim to \
 RealFact's verdict correctly stays \emph{Conflicting Evidence}. We map each design decision to the lessons of
 Guo et~al.'s survey, compare RealFact with existing approaches, and report a LIAR evaluation that exposes
 the dependence of accuracy on evidence-corpus coverage. On a curated FEVER subset (179 dev claims against
-25,324 Wikipedia pages) with the evidence pool matched to the claims, RealFact reaches 74.3\% label accuracy, and the gold
-page is the top retrieved cluster for 89\% of verifiable claims.
+25,324 Wikipedia pages) with the evidence pool matched to the claims, RealFact reaches 81.0\% label accuracy with settings chosen on a disjoint tuning split, and
+the gold page is the top retrieved cluster for 92\% of verifiable claims.
 \end{abstract}
 
 \tableofcontents
@@ -799,8 +799,13 @@ with a matched pool, we built a demo corpus from the official FEVER data (\textt
   \item \textbf{Pages:} 25,324 pages of the 2017 dump: the 125 gold pages, 2,723 pages cited as evidence by other dev claims
   (topical hard distractors), and 22,476 random pages. Embedding them took 89\,s on the Apple GPU.
   \item \textbf{NLI:} \texttt{DeBERTa-v3-base-mnli-fever-anli}, trained on FEVER's train split, so testing on dev claims is fair.
-  The live-news path keeps the smaller xsmall model. The relevance floor stays at the news-calibrated 0.68 and was not
-  tuned on these claims.
+  The live-news path keeps the smaller xsmall model.
+  \item \textbf{Tuning split:} 180 other dev claims (60 per label) whose evidence pages are already in the corpus and which
+  share no claim or gold page with the 179 test claims. Every choice below was made on this split; the test claims were
+  scored once afterwards. Chosen: sentence-level NLI (each sentence of a page is checked against the claim and the most
+  decisive one is used, as FEVER systems select sentences), a relative cutoff that keeps stories within 0.04 cosine of
+  the best match (still up to $K = 10$), $\theta = 0.8$ and a relevance floor of 0.64. The larger
+  \texttt{DeBERTa-v3-large-mnli-fever-anli-ling-wanli} was no better on the tuning split and 2--3$\times$ slower.
 \end{itemize}
 
 \begin{table}[H]
@@ -809,18 +814,20 @@ with a matched pool, we built a demo corpus from the official FEVER data (\textt
 \label{tab:feverdemo}
 \begin{tabular}{lcccc}
 \toprule
-\textbf{NLI model} & \textbf{Accuracy} & \textbf{Macro F1} & \textbf{ms / claim} & \textbf{Recall@1 / @5}\\
+\textbf{Configuration} & \textbf{Accuracy} & \textbf{Macro F1} & \textbf{ms / claim} & \textbf{Recall@1 / @5}\\
 \midrule
-nli-deberta-v3-xsmall & 58.7\% & 0.585 & 65 & 89.1\% / 95.0\%\\
-\rowcolor{novelsoft}DeBERTa-v3-base-mnli-fever-anli & \textbf{74.3\%} & \textbf{0.741} & 167 & 89.1\% / 95.0\%\\
+xsmall NLI, paragraph evidence, news thresholds & 58.7\% & 0.585 & 65 & 89.1\% / 95.0\%\\
+FEVER NLI, paragraph evidence, news thresholds & 74.3\% & 0.741 & 95 & 89.1\% / 95.0\%\\
+\rowcolor{novelsoft}FEVER NLI, sentence evidence, tuned on held-out split & \textbf{81.0\%} & \textbf{0.807} & 114 & 92.4\% / 96.6\%\\
 \bottomrule
 \end{tabular}
 \end{table}
 
-With the FEVER-trained model, per-class F1 is 0.807 (SUPPORTS), 0.768 (REFUTES) and 0.649 (NOT ENOUGH INFO). The remaining
-errors are concentrated in NOT ENOUGH INFO claims: 15 of 60 were labelled Contradicted, because these claims name real
-entities whose pages are retrieved and partly conflict with the claim. Retrieval is not the bottleneck: the gold page is
-the top cluster for 89.1\% of verifiable claims. As expected, all four aggregation rules gave identical results, since
+With the final configuration, per-class F1 is 0.871 (SUPPORTS), 0.800 (REFUTES) and 0.750 (NOT ENOUGH INFO); the tuning
+split itself scores 83.9\%, so the test result is close to it, as expected when settings are not fitted to the test claims.
+The remaining errors are concentrated in NOT ENOUGH INFO claims: 15 of 60 were labelled Contradicted, because these claims
+name real entities whose pages are retrieved and partly conflict with the claim. Retrieval is not the bottleneck: the
+gold page is the top cluster for 92.4\% of verifiable claims. As expected, all four aggregation rules gave identical results, since
 Wikipedia contains no syndicated copies. This subset was selected to suit a lead-only index, so the numbers show what the
 pipeline does when evidence is available; they are not comparable to published full-FEVER scores.
 

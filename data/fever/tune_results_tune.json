@@ -1,0 +1,58 @@
+[
+ {
+  "model": "MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli",
+  "mode": "lead",
+  "default_acc": 0.7666666666666667,
+  "default_f1": 0.7555859553123575,
+  "best_acc": 0.8222222222222222,
+  "best_f1": 0.8113011105377518,
+  "best": {
+   "theta": 0.8,
+   "delta": 0.15,
+   "min_rel": 0.64,
+   "K": 1
+  }
+ },
+ {
+  "model": "MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli",
+  "mode": "sentence",
+  "default_acc": 0.7722222222222223,
+  "default_f1": 0.7647252389511124,
+  "best_acc": 0.8388888888888889,
+  "best_f1": 0.8291998609662844,
+  "best": {
+   "theta": 0.8,
+   "delta": 0.15,
+   "min_rel": 0.64,
+   "K": 1
+  }
+ },
+ {
+  "model": "MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli",
+  "mode": "lead",
+  "default_acc": 0.7888888888888889,
+  "default_f1": 0.7760494703828629,
+  "best_acc": 0.8333333333333334,
+  "best_f1": 0.8202855623908255,
+  "best": {
+   "theta": 0.4,
+   "delta": 0.15,
+   "min_rel": 0.64,
+   "K": 1
+  }
+ },
+ {
+  "model": "MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli",
+  "mode": "sentence",
+  "default_acc": 0.75,
+  "default_f1": 0.7334936307564729,
+  "best_acc": 0.8277777777777777,
+  "best_f1": 0.8136245606225575,
+  "best": {
+   "theta": 0.8,
+   "delta": 0.15,
+   "min_rel": 0.64,
+   "K": 1
+  }
+ }
+]

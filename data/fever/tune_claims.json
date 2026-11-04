@@ -1,0 +1,2355 @@
+{
+ "meta": {
+  "split": "tune",
+  "claims": 180,
+  "seed": 7,
+  "per_label": {
+   "SUPPORTS": 60,
+   "REFUTES": 60,
+   "NOT ENOUGH INFO": 60
+  },
+  "disjoint_from": "demo_claims.json (no shared claim ids or gold pages)"
+ },
+ "claims": [
+  {
+   "id": 88429,
+   "claim": "Tremont Street Subway is incapable of serving Park Street station.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Tremont Street Subway",
+     "page_id": "Tremont_Street_Subway",
+     "line": 2,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Tremont_Street_Subway"
+   ]
+  },
+  {
+   "id": 219278,
+   "claim": "Capsicum chinense is a species of chili pepper.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Capsicum chinense",
+     "page_id": "Capsicum_chinense",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Capsicum_chinense"
+   ]
+  },
+  {
+   "id": 126266,
+   "claim": "Ned Stark was employed with a set of actors in a drama.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 116709,
+   "claim": "Bank of America has daycare centers.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 77305,
+   "claim": "Nate Diaz signed with a pen.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 44874,
+   "claim": "Riz Ahmed is an award nominated deep-sea diver.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 26705,
+   "claim": "1979 was the year when Rob Sheridan was born.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Rob Sheridan",
+     "page_id": "Rob_Sheridan",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Rob_Sheridan"
+   ]
+  },
+  {
+   "id": 60425,
+   "claim": "Salman Rushdie was a winner of the Booker Prize.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Salman Rushdie",
+     "page_id": "Salman_Rushdie",
+     "line": 1,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Salman_Rushdie"
+   ]
+  },
+  {
+   "id": 176634,
+   "claim": "Great white sharks have prey preferences.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 188640,
+   "claim": "Foot Locker operates in only 11 countries.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Foot Locker",
+     "page_id": "Foot_Locker",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Foot_Locker"
+   ]
+  },
+  {
+   "id": 42223,
+   "claim": "Mercedes-Benz is a division of a German automobile manufacturer.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Mercedes-Benz",
+     "page_id": "Mercedes-Benz",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Mercedes-Benz"
+   ]
+  },
+  {
+   "id": 98786,
+   "claim": "Beaverton, Oregon is a place.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Beaverton, Oregon",
+     "page_id": "Beaverton,_Oregon",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Beaverton,_Oregon"
+   ]
+  },
+  {
+   "id": 179051,
+   "claim": "Congressional Space Medal of Honor is awarded based on recommendations.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 49268,
+   "claim": "Hedda Gabler's world premiere took place before January 31st, 1891.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Hedda Gabler",
+     "page_id": "Hedda_Gabler",
+     "line": 1,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Hedda_Gabler"
+   ]
+  },
+  {
+   "id": 118434,
+   "claim": "Phoenix, Arizona is in southwestern Mexico.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Phoenix, Arizona",
+     "page_id": "Phoenix,_Arizona",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Phoenix,_Arizona"
+   ]
+  },
+  {
+   "id": 11721,
+   "claim": "Daggering is nontraditional.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Daggering",
+     "page_id": "Daggering",
+     "line": 2,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Daggering"
+   ]
+  },
+  {
+   "id": 93339,
+   "claim": "The Hindu Kush refers only to a strain of marijuana.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Hindu Kush",
+     "page_id": "Hindu_Kush",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Hindu_Kush"
+   ]
+  },
+  {
+   "id": 10942,
+   "claim": "Speech recognition incorporates knowledge and research in the computer science fields.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Speech recognition",
+     "page_id": "Speech_recognition",
+     "line": 2,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Speech_recognition"
+   ]
+  },
+  {
+   "id": 130108,
+   "claim": "Shomu Mukherjee was born on April 10, 2008.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Shomu Mukherjee",
+     "page_id": "Shomu_Mukherjee",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Shomu_Mukherjee"
+   ]
+  },
+  {
+   "id": 148304,
+   "claim": "Mikhail Prokhorov is not the former chairman of a gold producer.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Mikhail Prokhorov",
+     "page_id": "Mikhail_Prokhorov",
+     "line": 3,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Mikhail_Prokhorov"
+   ]
+  },
+  {
+   "id": 191430,
+   "claim": "Keith Urban is an Australian car company.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Keith Urban (1999 album)",
+     "page_id": "Keith_Urban_-LRB-1999_album-RRB-",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Keith_Urban_-LRB-1999_album-RRB-"
+   ]
+  },
+  {
+   "id": 65053,
+   "claim": "Caf\u00e9 Society appeared in a film in the twenty first century.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 75384,
+   "claim": "Marvel vs. Capcom: Infinite is a video game.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Marvel vs. Capcom: Infinite",
+     "page_id": "Marvel_vs._Capcom-COLON-_Infinite",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Marvel_vs._Capcom-COLON-_Infinite"
+   ]
+  },
+  {
+   "id": 213941,
+   "claim": "Gray Matter Interactive Studios, Inc. was a board game developer.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Gray Matter Interactive",
+     "page_id": "Gray_Matter_Interactive",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Gray_Matter_Interactive"
+   ]
+  },
+  {
+   "id": 122277,
+   "claim": "Morse Code is heard in air traffic control.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 164102,
+   "claim": "2014 was when Annie was released.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Annie (2014 film)",
+     "page_id": "Annie_-LRB-2014_film-RRB-",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Annie_-LRB-2014_film-RRB-"
+   ]
+  },
+  {
+   "id": 184091,
+   "claim": "Ernest Medina participated in the My Lai Massacre.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Ernest Medina",
+     "page_id": "Ernest_Medina",
+     "line": 2,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Ernest_Medina"
+   ]
+  },
+  {
+   "id": 72508,
+   "claim": "Internet access requires the use of computer terminals.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Internet access",
+     "page_id": "Internet_access",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Internet_access"
+   ]
+  },
+  {
+   "id": 179309,
+   "claim": "Franchising is regulated in the United Kingdom.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 84685,
+   "claim": "Edward Cullen was created.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 22805,
+   "claim": "Moscovium has an atomic symbol.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Moscovium",
+     "page_id": "Moscovium",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Moscovium"
+   ]
+  },
+  {
+   "id": 56481,
+   "claim": "Tool has been awarded three Grammy Awards.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Tool (band)",
+     "page_id": "Tool_-LRB-band-RRB-",
+     "line": 3,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Tool_-LRB-band-RRB-"
+   ]
+  },
+  {
+   "id": 95456,
+   "claim": "Robinson Crusoe on Mars was a sitcom.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Robinson Crusoe on Mars",
+     "page_id": "Robinson_Crusoe_on_Mars",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Robinson_Crusoe_on_Mars"
+   ]
+  },
+  {
+   "id": 23211,
+   "claim": "Aubrey Anderson-Emmons is a child actress.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Aubrey Anderson-Emmons",
+     "page_id": "Aubrey_Anderson-Emmons",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Aubrey_Anderson-Emmons"
+   ]
+  },
+  {
+   "id": 6115,
+   "claim": "AMGTV has science fiction television programming.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 202953,
+   "claim": "Avenged Sevenfold's fourth studio album is Avenged Sevenfold.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Avenged Sevenfold (album)",
+     "page_id": "Avenged_Sevenfold_-LRB-album-RRB-",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Avenged_Sevenfold_-LRB-album-RRB-"
+   ]
+  },
+  {
+   "id": 126466,
+   "claim": "Trollhunters is animated.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Trollhunters",
+     "page_id": "Trollhunters",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Trollhunters"
+   ]
+  },
+  {
+   "id": 177982,
+   "claim": "Children get sweet candy from Trick-or-Treating.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 178335,
+   "claim": "Al Jardine provided the lead vocal part on a song penned by C. E. Quick.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 83366,
+   "claim": "Michael B. Jordan has only lived in France.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 133590,
+   "claim": "Garden State was at a function of the Sundance Institute.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 90868,
+   "claim": "The Ellen Show began its broadcast in Taiwan.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 192029,
+   "claim": "American Library Association is anything except the largest of its kind.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "American Library Association",
+     "page_id": "American_Library_Association",
+     "line": 1,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "American_Library_Association"
+   ]
+  },
+  {
+   "id": 182700,
+   "claim": "Until July 2006, Nina Jacobson worked for Buena Vista Motion Pictures Group.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Nina Jacobson",
+     "page_id": "Nina_Jacobson",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Nina_Jacobson"
+   ]
+  },
+  {
+   "id": 32815,
+   "claim": "Eric Church is a singer.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Eric Church",
+     "page_id": "Eric_Church",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Eric_Church"
+   ]
+  },
+  {
+   "id": 216583,
+   "claim": "X-rays are used to detect calcaneal spurs.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Calcaneal spur",
+     "page_id": "Calcaneal_spur",
+     "line": 1,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Calcaneal_spur"
+   ]
+  },
+  {
+   "id": 124033,
+   "claim": "Noel Fisher portrayed Mickey Milkovich and gained acclaim.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 58966,
+   "claim": "Catherine Keener appeared at a Bernie rally.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 137391,
+   "claim": "Melancholia is a disease.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Melancholia (2011 film)",
+     "page_id": "Melancholia_-LRB-2011_film-RRB-",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Melancholia_-LRB-2011_film-RRB-"
+   ]
+  },
+  {
+   "id": 166860,
+   "claim": "Drake Bell is a brother.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 80516,
+   "claim": "The Danish language has speakers in Spain.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Danish language",
+     "page_id": "Danish_language",
+     "line": 1,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Danish_language"
+   ]
+  },
+  {
+   "id": 64523,
+   "claim": "Sandra Bullock worked with HBO.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 58415,
+   "claim": "Ludwig van Beethoven was part of the classical era.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Ludwig van Beethoven",
+     "page_id": "Ludwig_van_Beethoven",
+     "line": 1,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Ludwig_van_Beethoven"
+   ]
+  },
+  {
+   "id": 4806,
+   "claim": "Dark matter is distinct from dark energy.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Dark matter",
+     "page_id": "Dark_matter",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Dark_matter"
+   ]
+  },
+  {
+   "id": 55710,
+   "claim": "James Brolin was born in 1944.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "James Brolin",
+     "page_id": "James_Brolin",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "James_Brolin"
+   ]
+  },
+  {
+   "id": 206155,
+   "claim": "Palo Alto, California is located in the southwest of the United States.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 84503,
+   "claim": "The dress inspired comments.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 188133,
+   "claim": "Stephen Moyer played the lead role in Hellboy.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 89428,
+   "claim": "John Deighton developed psychological problems.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 205104,
+   "claim": "Gaius Julius Caesar was the cousin of Gaius Julius Caesar.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 194441,
+   "claim": "The Indiana Pacers were first established in 1967 in Portugal.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 185409,
+   "claim": "Rick Rosner wrote the TV series that CHiPs is based on.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 152505,
+   "claim": "Robert Palmer (writer) is a father.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 202453,
+   "claim": "Tinker Tailor Soldier Spy stars Aaron Carter.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 13446,
+   "claim": "Duane Chapman is a former bail bondsman.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Duane Chapman",
+     "page_id": "Duane_Chapman",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Duane_Chapman"
+   ]
+  },
+  {
+   "id": 208159,
+   "claim": "Easy A is a film released in 2010.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Easy A",
+     "page_id": "Easy_A",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Easy_A"
+   ]
+  },
+  {
+   "id": 212186,
+   "claim": "Miracle at St. Anna is set during the Renaissance.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Miracle at St. Anna",
+     "page_id": "Miracle_at_St._Anna",
+     "line": 2,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Miracle_at_St._Anna"
+   ]
+  },
+  {
+   "id": 181984,
+   "claim": "Forceps are used for drawing.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 225730,
+   "claim": "David Lloyd George was the subject of a controversial vote in 2002.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 73814,
+   "claim": "Aparshakti Khurana is a singer.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 104632,
+   "claim": "EA Black Box was a coach.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "EA Black Box",
+     "page_id": "EA_Black_Box",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "EA_Black_Box"
+   ]
+  },
+  {
+   "id": 177156,
+   "claim": "Invasion literature is a fictional genre.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 127676,
+   "claim": "Robert Zemeckis has directed movies for people over 18.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 217669,
+   "claim": "The Pelican Brief is based solely on a poem.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "The Pelican Brief (film)",
+     "page_id": "The_Pelican_Brief_-LRB-film-RRB-",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "The_Pelican_Brief_-LRB-film-RRB-"
+   ]
+  },
+  {
+   "id": 220950,
+   "claim": "A former Soviet nation was part of the Group of 15.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 78252,
+   "claim": "Meghan Markle was born in August.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Meghan Markle",
+     "page_id": "Meghan_Markle",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Meghan_Markle"
+   ]
+  },
+  {
+   "id": 74327,
+   "claim": "Shooter stars Robin Williams in the lead role.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Shooter (TV series)",
+     "page_id": "Shooter_-LRB-TV_series-RRB-",
+     "line": 1,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Shooter_-LRB-TV_series-RRB-"
+   ]
+  },
+  {
+   "id": 172754,
+   "claim": "The Beach is based on a novel from 1996.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "The Beach (film)",
+     "page_id": "The_Beach_-LRB-film-RRB-",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "The_Beach_-LRB-film-RRB-"
+   ]
+  },
+  {
+   "id": 137963,
+   "claim": "The human brain lacks a cerebellum.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Human brain",
+     "page_id": "Human_brain",
+     "line": 2,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Human_brain"
+   ]
+  },
+  {
+   "id": 86749,
+   "claim": "Sarah Hyland is from Indiana.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Sarah Hyland",
+     "page_id": "Sarah_Hyland",
+     "line": 1,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Sarah_Hyland"
+   ]
+  },
+  {
+   "id": 51886,
+   "claim": "A Good Day to Die Hard had a director.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "A Good Day to Die Hard",
+     "page_id": "A_Good_Day_to_Die_Hard",
+     "line": 1,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "A_Good_Day_to_Die_Hard"
+   ]
+  },
+  {
+   "id": 84561,
+   "claim": "The Bassoon King is only a film.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "The Bassoon King",
+     "page_id": "The_Bassoon_King",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "The_Bassoon_King"
+   ]
+  },
+  {
+   "id": 41606,
+   "claim": "SpongeBob SquarePants is not the highest rated series to ever air on Nickelodeon.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "SpongeBob SquarePants",
+     "page_id": "SpongeBob_SquarePants",
+     "line": 2,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "SpongeBob_SquarePants"
+   ]
+  },
+  {
+   "id": 41820,
+   "claim": "Macklemore is a hip hop artist.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Macklemore",
+     "page_id": "Macklemore",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Macklemore"
+   ]
+  },
+  {
+   "id": 178858,
+   "claim": "Dawood Ibrahim was born in 1955.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Dawood Ibrahim",
+     "page_id": "Dawood_Ibrahim",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Dawood_Ibrahim"
+   ]
+  },
+  {
+   "id": 53135,
+   "claim": "Arizona is in North America.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Arizona",
+     "page_id": "Arizona",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Arizona"
+   ]
+  },
+  {
+   "id": 3106,
+   "claim": "The Armenian Genocide was the Ottoman government's systematic extermination of 1.5 million Armenians.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Armenian Genocide",
+     "page_id": "Armenian_Genocide",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Armenian_Genocide"
+   ]
+  },
+  {
+   "id": 81912,
+   "claim": "Heath Ledger did not aspire to be a film director.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Heath Ledger",
+     "page_id": "Heath_Ledger",
+     "line": 3,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Heath_Ledger"
+   ]
+  },
+  {
+   "id": 173663,
+   "claim": "Most of the territory of modern-day Central Serbia was included in Moesia.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Moesia",
+     "page_id": "Moesia",
+     "line": 1,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Moesia"
+   ]
+  },
+  {
+   "id": 172487,
+   "claim": "Matteo Renzi is only Australian.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Matteo Renzi",
+     "page_id": "Matteo_Renzi",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Matteo_Renzi"
+   ]
+  },
+  {
+   "id": 51126,
+   "claim": "Prescott, Arizona is outside of Yavapai County.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Prescott, Arizona",
+     "page_id": "Prescott,_Arizona",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Prescott,_Arizona"
+   ]
+  },
+  {
+   "id": 125095,
+   "claim": "Raven-Symon\u00e9 appears in Deadwood.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 116801,
+   "claim": "Sonny & Cher was made up of two completely unacquainted people.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Sonny & Cher",
+     "page_id": "Sonny_&_Cher",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Sonny_&_Cher"
+   ]
+  },
+  {
+   "id": 211017,
+   "claim": "Resident Evil is an upcoming video game.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Resident Evil (film)",
+     "page_id": "Resident_Evil_-LRB-film-RRB-",
+     "line": 2,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Resident_Evil_-LRB-film-RRB-"
+   ]
+  },
+  {
+   "id": 120684,
+   "claim": "Adobe Systems has Adobe Photoshop part of it.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Adobe Photoshop",
+     "page_id": "Adobe_Photoshop",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Adobe_Photoshop"
+   ]
+  },
+  {
+   "id": 134979,
+   "claim": "Soul Food was published by a producer.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 36882,
+   "claim": "Tommy Lee Jones missed the chance to appear in No Country for Old Men.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "No Country for Old Men (film)",
+     "page_id": "No_Country_for_Old_Men_-LRB-film-RRB-",
+     "line": 1,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "No_Country_for_Old_Men_-LRB-film-RRB-"
+   ]
+  },
+  {
+   "id": 89433,
+   "claim": "The Quiet was directed by Steven Spielberg.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 15000,
+   "claim": "David Spade starred in Black Sheep and gained acclaim.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 104111,
+   "claim": "French Indochina was previously spelled as Waluigi.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 215114,
+   "claim": "Private Lives is a comedy by a Protestant playwright.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 140431,
+   "claim": "Brazzers is a cinematic production company.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 79635,
+   "claim": "Touch My Body is a law.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Touch My Body",
+     "page_id": "Touch_My_Body",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Touch_My_Body"
+   ]
+  },
+  {
+   "id": 194175,
+   "claim": "Jeb Bush is the younger brother of Ronald Reagan.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Jeb Bush",
+     "page_id": "Jeb_Bush",
+     "line": 3,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Jeb_Bush"
+   ]
+  },
+  {
+   "id": 222751,
+   "claim": "Practical Magic is based on a magazine that was written by Alice Hoffman.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 146189,
+   "claim": "The Daily Show described itself as a credible news program.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "The Daily Show",
+     "page_id": "The_Daily_Show",
+     "line": 2,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "The_Daily_Show"
+   ]
+  },
+  {
+   "id": 148947,
+   "claim": "Psych has a protagonist.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Psych",
+     "page_id": "Psych",
+     "line": 2,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Psych"
+   ]
+  },
+  {
+   "id": 58607,
+   "claim": "Hourglass was James Taylor's first album in 6 years.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Hourglass (James Taylor album)",
+     "page_id": "Hourglass_-LRB-James_Taylor_album-RRB-",
+     "line": 1,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Hourglass_-LRB-James_Taylor_album-RRB-"
+   ]
+  },
+  {
+   "id": 110280,
+   "claim": "Argentina's federal capital is Paris.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Argentina",
+     "page_id": "Argentina",
+     "line": 3,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Argentina"
+   ]
+  },
+  {
+   "id": 65458,
+   "claim": "Same Old Love is only a book.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Same Old Love",
+     "page_id": "Same_Old_Love",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Same_Old_Love"
+   ]
+  },
+  {
+   "id": 81450,
+   "claim": "Betsy Hodges served as mayor of Minneapolis.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Betsy Hodges",
+     "page_id": "Betsy_Hodges",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Betsy_Hodges"
+   ]
+  },
+  {
+   "id": 17218,
+   "claim": "Pharmacology deals with the elucidation of molecular and organismal function in relation to chemicals.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Pharmacology",
+     "page_id": "Pharmacology",
+     "line": 1,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Pharmacology"
+   ]
+  },
+  {
+   "id": 42184,
+   "claim": "Caesar is a play adaptation.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Caesar (Mercury Theatre)",
+     "page_id": "Caesar_-LRB-Mercury_Theatre-RRB-",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Caesar_-LRB-Mercury_Theatre-RRB-"
+   ]
+  },
+  {
+   "id": 41155,
+   "claim": "The Adventures of Pluto Nash stars a dog that was born in 1961.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 143712,
+   "claim": "Neil Diamond is a Canadian bullfighter.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Neil Diamond",
+     "page_id": "Neil_Diamond",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Neil_Diamond"
+   ]
+  },
+  {
+   "id": 223352,
+   "claim": "The Disaster Artist (film) is 8 years old.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "The Disaster Artist (film)",
+     "page_id": "The_Disaster_Artist_-LRB-film-RRB-",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "The_Disaster_Artist_-LRB-film-RRB-"
+   ]
+  },
+  {
+   "id": 148295,
+   "claim": "Proverbs are included in folklore.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Folklore",
+     "page_id": "Folklore",
+     "line": 1,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Folklore"
+   ]
+  },
+  {
+   "id": 139030,
+   "claim": "Peking University was founded as the replacement of a vintage school.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Peking University",
+     "page_id": "Peking_University",
+     "line": 1,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Peking_University"
+   ]
+  },
+  {
+   "id": 3202,
+   "claim": "Zoe Saldana was born in May of 1978.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Zoe Saldana",
+     "page_id": "Zoe_Saldana",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Zoe_Saldana"
+   ]
+  },
+  {
+   "id": 194915,
+   "claim": "Stripes featured Conrad Dunn.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Stripes (film)",
+     "page_id": "Stripes_-LRB-film-RRB-",
+     "line": 1,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Stripes_-LRB-film-RRB-"
+   ]
+  },
+  {
+   "id": 7429,
+   "claim": "Jenny McCarthy modeled for Playboy magazine.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Jenny McCarthy",
+     "page_id": "Jenny_McCarthy",
+     "line": 1,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Jenny_McCarthy"
+   ]
+  },
+  {
+   "id": 115773,
+   "claim": "Japan is in North America.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Japan",
+     "page_id": "Japan",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Japan"
+   ]
+  },
+  {
+   "id": 91843,
+   "claim": "Dulquer Salmaan refused to ever act in a Malayalam-language film.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Dulquer Salmaan",
+     "page_id": "Dulquer_Salmaan",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Dulquer_Salmaan"
+   ]
+  },
+  {
+   "id": 109140,
+   "claim": "The United Nations Charter was signed in Germany.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "United Nations Charter",
+     "page_id": "United_Nations_Charter",
+     "line": 1,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "United_Nations_Charter"
+   ]
+  },
+  {
+   "id": 153819,
+   "claim": "Dakota Fanning is Canadian.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Dakota Fanning",
+     "page_id": "Dakota_Fanning",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Dakota_Fanning"
+   ]
+  },
+  {
+   "id": 27595,
+   "claim": "Emmanuel Macron worked as an investment banker.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Emmanuel Macron",
+     "page_id": "Emmanuel_Macron",
+     "line": 1,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Emmanuel_Macron"
+   ]
+  },
+  {
+   "id": 1139,
+   "claim": "Catherine Keener appeared in Synecdoche, New York.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Catherine Keener",
+     "page_id": "Catherine_Keener",
+     "line": 2,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Catherine_Keener"
+   ]
+  },
+  {
+   "id": 192965,
+   "claim": "Roland Emmerich is an active campaigner for the LGBT community.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Roland Emmerich",
+     "page_id": "Roland_Emmerich",
+     "line": 3,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Roland_Emmerich"
+   ]
+  },
+  {
+   "id": 154719,
+   "claim": "David Packouz had something to do with weapons at some point in his life.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "David Packouz",
+     "page_id": "David_Packouz",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "David_Packouz"
+   ]
+  },
+  {
+   "id": 7419,
+   "claim": "The Faroe Islands existed.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Faroe Islands",
+     "page_id": "Faroe_Islands",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Faroe_Islands"
+   ]
+  },
+  {
+   "id": 199414,
+   "claim": "Mason Evans, Jr. grows up.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Boyhood (film)",
+     "page_id": "Boyhood_-LRB-film-RRB-",
+     "line": 1,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Boyhood_-LRB-film-RRB-"
+   ]
+  },
+  {
+   "id": 173729,
+   "claim": "Earl Scruggs was incapable of being involved in bluegrass music.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Earl Scruggs",
+     "page_id": "Earl_Scruggs",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Earl_Scruggs"
+   ]
+  },
+  {
+   "id": 143749,
+   "claim": "The Catcher in the Rye is not a novel.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "The Catcher in the Rye",
+     "page_id": "The_Catcher_in_the_Rye",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "The_Catcher_in_the_Rye"
+   ]
+  },
+  {
+   "id": 99435,
+   "claim": "Color of Night is still in production.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Color of Night",
+     "page_id": "Color_of_Night",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Color_of_Night"
+   ]
+  },
+  {
+   "id": 56710,
+   "claim": "Colin Kaepernick is a person.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Colin Kaepernick",
+     "page_id": "Colin_Kaepernick",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Colin_Kaepernick"
+   ]
+  },
+  {
+   "id": 171061,
+   "claim": "Lalla Ward is an author.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Lalla Ward",
+     "page_id": "Lalla_Ward",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Lalla_Ward"
+   ]
+  },
+  {
+   "id": 149746,
+   "claim": "John S. McCain Jr. was raised in Washington, D.C.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "John S. McCain Jr.",
+     "page_id": "John_S._McCain_Jr.",
+     "line": 3,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "John_S._McCain_Jr."
+   ]
+  },
+  {
+   "id": 204451,
+   "claim": "Brad Wilk co-founded Rage with Tom Morello and Zach Galifianakis.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 55156,
+   "claim": "T2 Trainspotting is set outside of Scotland.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "T2 Trainspotting",
+     "page_id": "T2_Trainspotting",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "T2_Trainspotting"
+   ]
+  },
+  {
+   "id": 15310,
+   "claim": "Antigua is a part of Indonesia.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Antigua",
+     "page_id": "Antigua",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Antigua"
+   ]
+  },
+  {
+   "id": 206730,
+   "claim": "Samwell Tarly appears in The Lord of the Rings series.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Samwell Tarly",
+     "page_id": "Samwell_Tarly",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Samwell_Tarly"
+   ]
+  },
+  {
+   "id": 173126,
+   "claim": "Anne Sullivan is still alive.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Anne Sullivan",
+     "page_id": "Anne_Sullivan",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Anne_Sullivan"
+   ]
+  },
+  {
+   "id": 6048,
+   "claim": "SummerSlam was promoted by WWE.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 226148,
+   "claim": "Richard Dawkins has been awarded prestigious sports awards.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 68375,
+   "claim": "Robinson Crusoe on Mars was distributed by Paramount Pictures in 2007.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 219154,
+   "claim": "Valencia is a village.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 173502,
+   "claim": "Sancho Panza is a fictional character in a novel written by a Spanish writer born in Prague.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 75467,
+   "claim": "Janelle Mon\u00e1e is a trucker and surfer.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 216803,
+   "claim": "Timur styled himself a Janissary.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 63829,
+   "claim": "Highway to Heaven ran until 1999.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Highway to Heaven",
+     "page_id": "Highway_to_Heaven",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Highway_to_Heaven"
+   ]
+  },
+  {
+   "id": 91340,
+   "claim": "A near-Earth object is one whose orbit brings it away from Earth.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Near-Earth object",
+     "page_id": "Near-Earth_object",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Near-Earth_object"
+   ]
+  },
+  {
+   "id": 131006,
+   "claim": "You Belong with Me is a fan club.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "You Belong with Me",
+     "page_id": "You_Belong_with_Me",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "You_Belong_with_Me"
+   ]
+  },
+  {
+   "id": 81192,
+   "claim": "Sora (Kingdom Hearts) has zero friends.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Sora (Kingdom Hearts)",
+     "page_id": "Sora_-LRB-Kingdom_Hearts-RRB-",
+     "line": 1,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Sora_-LRB-Kingdom_Hearts-RRB-"
+   ]
+  },
+  {
+   "id": 23198,
+   "claim": "Miranda Otto began her film acting career at age 18.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Miranda Otto",
+     "page_id": "Miranda_Otto",
+     "line": 1,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Miranda_Otto"
+   ]
+  },
+  {
+   "id": 92383,
+   "claim": "Jonah Hill did not star in 21 Jump Street.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Jonah Hill",
+     "page_id": "Jonah_Hill",
+     "line": 1,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Jonah_Hill"
+   ]
+  },
+  {
+   "id": 115940,
+   "claim": "Party Down is a show that Lizzy Caplan starred in.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Lizzy Caplan",
+     "page_id": "Lizzy_Caplan",
+     "line": 2,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Lizzy_Caplan"
+   ]
+  },
+  {
+   "id": 152008,
+   "claim": "A monster is usually found in myths or horror fiction.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Monster",
+     "page_id": "Monster",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Monster"
+   ]
+  },
+  {
+   "id": 133704,
+   "claim": "Lucy Hale's middle name is Karen.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Lucy Hale",
+     "page_id": "Lucy_Hale",
+     "line": 1,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Lucy_Hale"
+   ]
+  },
+  {
+   "id": 124355,
+   "claim": "Alexandra Daddario was not born on March 16, 1986.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Alexandra Daddario",
+     "page_id": "Alexandra_Daddario",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Alexandra_Daddario"
+   ]
+  },
+  {
+   "id": 128045,
+   "claim": "Chris Bosh plays in a professional basketball league in America.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Chris Bosh",
+     "page_id": "Chris_Bosh",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Chris_Bosh"
+   ]
+  },
+  {
+   "id": 151264,
+   "claim": "The English Wikipedia is an edition of a free online almanac.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "English Wikipedia",
+     "page_id": "English_Wikipedia",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "English_Wikipedia"
+   ]
+  },
+  {
+   "id": 170955,
+   "claim": "Smriti Mandhana is an Indian soccer player.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 131087,
+   "claim": "The NAACP Image Award for Outstanding Supporting Actor in a Drama Series has been won by Joe Morton.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "NAACP Image Award for Outstanding Supporting Actor in a Drama Series",
+     "page_id": "NAACP_Image_Award_for_Outstanding_Supporting_Actor_in_a_Drama_Series",
+     "line": 1,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "NAACP_Image_Award_for_Outstanding_Supporting_Actor_in_a_Drama_Series"
+   ]
+  },
+  {
+   "id": 182281,
+   "claim": "Saturn Corporation was established on January 8.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Saturn Corporation",
+     "page_id": "Saturn_Corporation",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Saturn_Corporation"
+   ]
+  },
+  {
+   "id": 211801,
+   "claim": "Brick (film) was written in Alaska.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 195817,
+   "claim": "Jeong Hyeong-don has worked under FNC Entertainment.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Jeong Hyeong-don",
+     "page_id": "Jeong_Hyeong-don",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Jeong_Hyeong-don"
+   ]
+  },
+  {
+   "id": 179095,
+   "claim": "The film The Good German was the topic of an academic article by Tobey Maguire.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 167457,
+   "claim": "Cadet Kelly was a movie not released in 2002.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Cadet Kelly",
+     "page_id": "Cadet_Kelly",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Cadet_Kelly"
+   ]
+  },
+  {
+   "id": 185993,
+   "claim": "Kyra Sedgwick won the lottery.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 68934,
+   "claim": "Luke Cage appeared in a comic book series Luke Cage, Hero for Hire.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Luke Cage",
+     "page_id": "Luke_Cage",
+     "line": 1,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Luke_Cage"
+   ]
+  },
+  {
+   "id": 26830,
+   "claim": "The Republic of Macedonia is in Europe.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Republic of Macedonia",
+     "page_id": "Republic_of_Macedonia",
+     "line": 1,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Republic_of_Macedonia"
+   ]
+  },
+  {
+   "id": 152117,
+   "claim": "Soyuz was designed in the 1930s.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Soyuz (spacecraft)",
+     "page_id": "Soyuz_-LRB-spacecraft-RRB-",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Soyuz_-LRB-spacecraft-RRB-"
+   ]
+  },
+  {
+   "id": 168634,
+   "claim": "The Thin Red Line (1998 film) has an all-female cast.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "The Thin Red Line (1998 film)",
+     "page_id": "The_Thin_Red_Line_-LRB-1998_film-RRB-",
+     "line": 2,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "The_Thin_Red_Line_-LRB-1998_film-RRB-"
+   ]
+  },
+  {
+   "id": 58513,
+   "claim": "In the End was written by Linkin Park.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "In the End",
+     "page_id": "In_the_End",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "In_the_End"
+   ]
+  },
+  {
+   "id": 13987,
+   "claim": "Westworld (TV series)'s first season has performances by Angelina Jolie and Tom Hanks.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 194481,
+   "claim": "Tilda Swinton is vegan.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 159713,
+   "claim": "Edgar Wright is the screenwriter of Twilight.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 21728,
+   "claim": "Woodrow Wilson lived during World War I.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Woodrow Wilson",
+     "page_id": "Woodrow_Wilson",
+     "line": 3,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "Woodrow_Wilson"
+   ]
+  },
+  {
+   "id": 119993,
+   "claim": "The Nice Guys is a 2018 film.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "The Nice Guys",
+     "page_id": "The_Nice_Guys",
+     "line": 0,
+     "sentence": null
+    }
+   ],
+   "gold_pages": [
+    "The_Nice_Guys"
+   ]
+  },
+  {
+   "id": 202309,
+   "claim": "The New Jersey Turnpike has rest areas named after notable Hoboken residents.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  }
+ ]
+}
