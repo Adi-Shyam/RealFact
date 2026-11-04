@@ -40,6 +40,7 @@ function showTab(name) {
   if (name === "corpus") loadCorpus();
   if (name === "bench") loadLastBench();
   if (name === "eval") loadEval();
+  if (name === "history") loadHistory();
   if (name === "compare") { drawWeightChart(); loadCmpBench(); }
 }
 $$("#tabs button").forEach((b) => (b.onclick = () => showTab(b.dataset.tab)));
@@ -85,7 +86,7 @@ async function loadExamples() {
   try {
     const c = await api("/api/corpus");
     const seen = new Set();
-    live = c.recent.filter((r) => !seen.has(r.domain) && seen.add(r.domain)).slice(0, 4).map((r) => r.title);
+    live = c.recent.filter((r) => r.origin !== "web" && !seen.has(r.domain) && seen.add(r.domain)).slice(0, 4).map((r) => r.title);
   } catch (e) {}
   $("#examples").innerHTML = `<span class="tiny muted" style="align-self:center">Try:</span>` +
     [...live, ...fixed].map((t) => `<button class="chip" title="${esc(t)}">${esc(t)}</button>`).join("");
@@ -97,12 +98,14 @@ async function runVerify(extra = {}) {
   if (!claim) return;
   const btn = $("#verify-btn");
   btn.disabled = true;
-  btn.innerHTML = `<span class="spinner"></span> Verifying`;
+  const web = CORPUS === "live" && $("#web-search").checked && !extra.syndicate_id;
+  btn.innerHTML = `<span class="spinner"></span> ${web ? "Searching web" : "Verifying"}`;
   if (CORPUS === "fever") $("#verify-out").innerHTML = `<div class="card small muted"><span class="spinner"></span> Verifying against the FEVER Wikipedia subset…</div>`;
+  else if (web) $("#verify-out").innerHTML = `<div class="card small muted"><span class="spinner"></span> Searching Google News and Wikipedia for this claim, then verifying…</div>`;
   LAST_CLAIM = claim;
   LAST_PARAMS = { ...readParams(), ...extra };
   try {
-    const r = await api("/api/verify", { method: "POST", body: JSON.stringify({ claim, params: LAST_PARAMS, corpus: CORPUS }) });
+    const r = await api("/api/verify", { method: "POST", body: JSON.stringify({ claim, params: LAST_PARAMS, corpus: CORPUS, web }) });
     renderVerify(r);
   } catch (e) {
     $("#verify-out").innerHTML = `<div class="err">${esc(e.message)}</div>`;
@@ -112,6 +115,8 @@ async function runVerify(extra = {}) {
   }
 }
 $("#verify-btn").onclick = () => runVerify();
+try { const w = localStorage.getItem("rf-web"); if (w !== null) $("#web-search").checked = w === "1"; } catch (e) {}
+$("#web-search").onchange = (e) => { try { localStorage.setItem("rf-web", e.target.checked ? "1" : "0"); } catch (err) {} };
 
 /* ------------------------------------------------------------------ corpus switch + FEVER demo */
 let CORPUS = "live";
@@ -202,6 +207,7 @@ function renderVerify(r) {
   const ablOrder = ["independence_log", "one_vote", "naive_count", "filter_off"];
 
   const stages = [
+    ...(r.web ? [["Web search", `Google News + Wikipedia · +${r.web.added} new`, t.web_search, false]] : []),
     ["Embed claim", "BGE-small · 384-d", t.embed_claim, false],
     ["OpenMP exact scan", `top-M · ${par.threads}T${par.threads_auto ? " (auto)" : ""} ${par.schedule}`, t.retrieval_kernel, true],
     ["Cluster duplicates", `τ = ${p.tau} → top-${p.K}`, t.clustering, true],
@@ -210,7 +216,9 @@ function renderVerify(r) {
   ];
 
   $("#verify-out").innerHTML = `
+  ${r.saved ? historyBanner(r.saved) : ""}
   ${r.fever ? feverPanel(r.fever) : ""}
+  ${r.web ? webPanel(r.web) : ""}
   ${sim ? `<div class="callout warn" style="margin-bottom:16px"><b>Syndication stress test active:</b> article #${sim.article_id} has been republished ×${sim.copies} under simulated outlets (<code>wire-copy-N.simulated</code>), for this query only. Nothing is written to the corpus. Compare the verdict table below. <button class="btn sm" id="clear-sim" style="margin-left:8px">Clear simulation</button></div>` : ""}
   <div class="verdict-wrap">
     <div class="verdict ${vclass(r.verdict)}">
@@ -259,6 +267,22 @@ function renderVerify(r) {
   $$(".mem-btn").forEach((b) => (b.onclick = () => { const m = b.closest(".ev").querySelector(".members"); m.hidden = !m.hidden; }));
   const cs = $("#clear-sim");
   if (cs) cs.onclick = () => runVerify();
+  const rr = $("#rerun-btn");
+  if (rr) rr.onclick = () => rerun(r.saved);
+}
+
+function webPanel(w) {
+  const old = w.found - w.added;
+  return `<div class="card" style="margin-bottom:16px">
+    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+      <div><div class="eyebrow">Web search for this claim</div>
+        <div class="small" style="margin-top:4px">Query <code>${esc(w.query)}</code> · ${w.found} results · <b>${w.added} new</b> added to the corpus${old ? ` · ${old} already there` : ""} · ${fmt(w.seconds, 1)} s</div></div>
+      ${w.items.length ? `<button class="btn sm" id="web-items-btn" style="margin-left:auto" onclick="this.closest('.card').querySelector('.web-items').hidden^=1">Show results</button>` : ""}
+    </div>
+    ${w.errors.length ? `<div class="err small" style="margin-top:8px">${w.errors.map(esc).join("<br>")}</div>` : ""}
+    <ul class="clean small web-items" hidden>${w.items.map((i) => `<li><span class="muted tiny">${esc(i.source)} · ${esc(i.domain)}</span>${i.new ? "" : ' <span class="tiny muted">(already in corpus)</span>'} · <a href="${esc(i.url)}" target="_blank" rel="noopener">${esc(i.title)}</a></li>`).join("")}</ul>
+    <p class="tiny muted" style="margin:8px 0 0">Web results are ordinary corpus entries from here on: the verdict below still comes only from what clears the relevance floor, after duplicate clustering. Google News often returns several outlets carrying one wire story, which collapse into a single cluster.</p>
+  </div>`;
 }
 
 function evidenceCard(e, p) {
@@ -270,7 +294,7 @@ function evidenceCard(e, p) {
       <div class="ev-rank">#${e.rank}</div>
       <div style="min-width:0">
         <div class="ev-title"><a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.title)}</a></div>
-        <div class="ev-meta"><span>${esc(r.domain)}</span><span>${esc(date)}</span><span class="mono">cos ${fmt(r.score, 3)}</span>${r.simulated ? '<span class="sim-tag">SIMULATED COPY</span>' : ""}</div>
+        <div class="ev-meta"><span>${esc(r.domain)}</span><span>${esc(date)}</span><span class="mono">cos ${fmt(r.score, 3)}</span>${r.origin === "web" ? '<span class="web-tag">WEB SEARCH</span>' : ""}${r.simulated ? '<span class="sim-tag">SIMULATED COPY</span>' : ""}</div>
         ${r.summary ? `<div class="ev-sum">${esc(r.summary.slice(0, 320))}${r.summary.length > 320 ? "…" : ""}</div>` : ""}
       </div>
       <div class="ev-right"><span class="stance s-${e.label}">${e.label}</span><div class="tiny muted" style="margin-top:4px">p = ${fmt(e.p)}</div>${probsBar(e.probs)}</div>
@@ -646,7 +670,7 @@ async function loadCorpus() {
       <div class="card tbl-wrap"><h3>Ingestion log</h3><table style="margin-top:8px"><thead><tr><th>When (UTC)</th><th class="num">Feeds ok</th><th class="num">Seen</th><th class="num">Exact dups</th><th class="num">Added</th><th class="num">s</th></tr></thead>
         <tbody>${c.ingest_log.map((l) => `<tr><td class="tiny">${esc(l.at.slice(0, 19).replace("T", " "))}</td><td class="num">${l.feeds_ok}${l.feeds_failed ? `/${l.feeds_ok + l.feeds_failed}` : ""}</td><td class="num">${l.seen}</td><td class="num">${l.exact_dups}</td><td class="num">${l.added}</td><td class="num">${l.seconds}</td></tr>`).join("")}</tbody></table>
         <p class="tiny muted" style="margin:8px 0 0">“Exact dups” are dropped by the (domain, normalised headline) hash before embedding. Near-duplicates across outlets are kept and handled by clustering at query time.</p></div>
-      <div class="card"><h3>Most recent</h3><ul class="clean small" style="margin-top:8px">${c.recent.slice(0, 12).map((r) => `<li><span class="muted tiny">${esc(r.domain)}</span> · <a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.title)}</a></li>`).join("")}</ul></div>
+      <div class="card"><h3>Most recent</h3><ul class="clean small" style="margin-top:8px">${c.recent.slice(0, 12).map((r) => `<li><span class="muted tiny">${esc(r.domain)}</span>${r.origin === "web" ? ' <span class="web-tag">WEB</span>' : ""} · <a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.title)}</a></li>`).join("")}</ul></div>
     </div>
   </div>`;
 }
@@ -681,6 +705,70 @@ async function loadEval() {
       ${d.modes.independence_log.merged_not_supported ? `<p class="small" style="margin:8px 0 0">Merged not-supported accuracy: ${fmt(d.modes.independence_log.merged_not_supported.accuracy * 100, 1)}%</p>` : ""}
     </div>`).join("") + `<div style="margin-top:16px">${howto}</div>`;
 }
+
+/* ------------------------------------------------------------------ history */
+const when = (iso) => new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+
+function historyBanner(h) {
+  return `<div class="callout hist-banner"><span>Saved result from <b>${esc(when(h.at))}</b>, shown exactly as it was then (corpus of ${h.corpus_size.toLocaleString()} ${h.corpus === "fever" ? "pages" : "articles"}).</span>
+    <button class="btn sm primary" id="rerun-btn">Re-run now</button></div>`;
+}
+
+async function loadHistory() {
+  const q = $("#h-search").value.trim();
+  const h = await api("/api/history?q=" + encodeURIComponent(q));
+  $("#h-title").textContent = `${h.total.toLocaleString()} saved verification${h.total === 1 ? "" : "s"}`;
+  $("#h-clear").disabled = !h.total;
+  const counts = Object.entries(h.by_verdict).map(([k, v]) => `<span class="vchip ${vclass(k)}">${esc(k)} · ${v}</span>`).join(" ");
+  if (!h.items.length) {
+    $("#history-out").innerHTML = `<div class="card empty">${q ? "No saved verifications match this search." : "No verifications yet. Verify a claim and it will appear here."}</div>`;
+    return;
+  }
+  $("#history-out").innerHTML = `
+    ${counts ? `<div class="chips" style="margin:0 0 12px">${counts}</div>` : ""}
+    <div class="card tbl-wrap"><table>
+      <thead><tr><th>When</th><th>Corpus</th><th>Claim</th><th>Verdict</th><th class="num">S</th><th class="num">Clusters</th><th class="num">ms</th><th></th></tr></thead>
+      <tbody>${h.items.map((i) => `<tr class="hist-row" data-id="${i.id}">
+        <td class="tiny" style="white-space:nowrap">${esc(when(i.at))}</td>
+        <td class="tiny">${i.corpus === "fever" ? "FEVER" : "Live"}${i.web_added !== null ? ` <span class="web-tag" title="web search added ${i.web_added} new items">WEB</span>` : ""}${i.fever_correct !== null ? ` <span class="${i.fever_correct ? "yes" : "no"}">${i.fever_correct ? "✓" : "✗"}</span>` : ""}</td>
+        <td class="hist-claim">${esc(i.claim)}</td>
+        <td><span class="vchip ${vclass(i.verdict)}">${esc(i.verdict)}</span></td>
+        <td class="num">${fmt(i.S)}</td><td class="num">${i.clusters}</td><td class="num">${fmt(i.latency_ms, 0)}</td>
+        <td class="hist-actions"><button class="btn sm h-open">Open</button> <button class="btn sm h-rerun">Re-run</button> <button class="btn sm h-del" title="Delete this entry">✕</button></td>
+      </tr>`).join("")}</tbody>
+    </table>
+    <p class="tiny muted" style="margin:8px 0 0">Stored locally in <code>data/history.sqlite</code>. Syndication stress-test runs are simulations and aren't saved. ✓/✗ marks whether a FEVER demo answer matched the gold label.</p></div>`;
+  $$("#history-out .hist-row").forEach((tr) => {
+    const id = +tr.dataset.id;
+    tr.onclick = (e) => { if (!e.target.closest("button") || e.target.closest(".h-open")) openHistory(id); };
+    $(".h-rerun", tr).onclick = async (e) => { e.stopPropagation(); rerun((await api("/api/history/" + id))); };
+    $(".h-del", tr).onclick = async (e) => { e.stopPropagation(); await api("/api/history/" + id, { method: "DELETE" }); loadHistory(); };
+  });
+}
+
+async function openHistory(id) {
+  const h = await api("/api/history/" + id);
+  await setCorpus(h.corpus);
+  $("#claim").value = h.claim;
+  showTab("verify");
+  renderVerify({ ...h.result, saved: h });
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+async function rerun(h) {
+  await setCorpus(h.corpus);
+  $("#claim").value = h.claim;
+  showTab("verify");
+  runVerify();
+}
+
+let hTimer = null;
+$("#h-search").addEventListener("input", () => { clearTimeout(hTimer); hTimer = setTimeout(loadHistory, 200); });
+$("#h-clear").onclick = async () => {
+  if (!confirm("Delete all saved verifications? This can't be undone.")) return;
+  await api("/api/history", { method: "DELETE" });
+  loadHistory();
+};
 
 /* ------------------------------------------------------------------ boot */
 (async function boot() {

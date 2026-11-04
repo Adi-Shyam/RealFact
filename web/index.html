@@ -24,6 +24,7 @@
       <button data-tab="bench">Parallel benchmark</button>
       <button data-tab="corpus">Live corpus</button>
       <button data-tab="eval">Evaluation</button>
+      <button data-tab="history">History</button>
     </nav>
   </div>
 </header>
@@ -45,6 +46,8 @@
         <textarea id="claim" rows="2" placeholder="Type a news claim, e.g. “Russian strike on a Ukrainian train station killed at least 13 people”"></textarea>
         <button class="btn primary" id="verify-btn">Verify</button>
       </div>
+      <label class="web-toggle"><input type="checkbox" id="web-search" checked>
+        <span><b>Search the web first</b> · fetch Google News and Wikipedia results for this claim and add them to the corpus, so they go through the same scan, clustering and weighting</span></label>
       <div class="chips" id="examples"></div>
     </div>
     <div id="fever-input" hidden>
@@ -162,6 +165,19 @@
     <div style="margin-left:auto"><button class="btn primary" id="ingest-btn">Fetch feeds now</button></div>
   </div>
   <div id="corpus-out" style="margin-top:16px"></div>
+</section>
+
+<!-- ======================================================= HISTORY -->
+<section class="tab" id="tab-history">
+  <div class="card" style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+    <div><div class="eyebrow">Verification history</div><h2 style="margin-top:4px" id="h-title">…</h2>
+      <p class="small muted" style="margin:4px 0 0" id="h-sub">Every verdict is saved with its full evidence. Open one to see it exactly as it was shown, or re-run it against today's corpus.</p></div>
+    <div class="fever-tools" style="margin:0 0 0 auto;min-width:260px">
+      <input type="text" id="h-search" placeholder="Search claims or verdicts" aria-label="Search history">
+      <button class="btn sm" id="h-clear">Clear all</button>
+    </div>
+  </div>
+  <div id="history-out" style="margin-top:16px"></div>
 </section>
 
 <!-- ======================================================= EVAL -->

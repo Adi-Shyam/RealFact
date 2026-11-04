@@ -68,6 +68,12 @@ class Store:
         if not rows:
             return 0
         with self.lock:
+            # RSS ingestion and on-demand web search can race on the same headline: drop rows already stored.
+            known = self.existing_keys()
+            keep = [j for j, r in enumerate(rows) if r["dedup_key"] not in known]
+            if not keep:
+                return 0
+            rows, vectors = [rows[j] for j in keep], np.asarray(vectors)[keep]
             start = self.size
             with self.db:
                 for j, r in enumerate(rows):
@@ -101,7 +107,7 @@ class Store:
             "SELECT domain, COUNT(*) AS n, MAX(published_at) AS latest FROM articles GROUP BY domain ORDER BY n DESC")]
         log = [dict(r) for r in self.db.execute("SELECT * FROM ingest_log ORDER BY id DESC LIMIT 10")]
         recent = [dict(r) for r in self.db.execute(
-            "SELECT id, domain, title, url, published_at FROM articles ORDER BY id DESC LIMIT 25")]
+            "SELECT id, domain, title, url, published_at, origin FROM articles ORDER BY id DESC LIMIT 60")]
         return {
             "articles": self.size,
             "matrix_bytes": int(self.emb.nbytes),

@@ -8,10 +8,11 @@ import uuid
 
 from flask import Flask, jsonify, request, send_from_directory
 
-from . import bench, pipeline
+from . import bench, pipeline, websearch
 from .config import (CORPUS_DEFAULTS, DATA_DIR, DEFAULTS, EMBED_MODEL, FEEDS, FEVER_CLAIMS_PATH, FEVER_DB_PATH,
                      FEVER_EMB_PATH, NLI_MODEL, ROOT)
 from .engine import omp_engine
+from .history import History
 from .ingest import ingest
 from .store import Store
 
@@ -29,6 +30,7 @@ def no_cache(resp):
     return resp
 
 store = Store()
+history = History()
 jobs = {}
 _fever = {"store": None, "claims": None, "mtime": None}
 
@@ -142,12 +144,41 @@ def verify():
             res = pipeline.verify(fv["store"], claim, body.get("params"), CORPUS_DEFAULTS["fever"])
             res["corpus"] = "fever"
             res["fever"] = fever_gold(res, gold)
+            res["history_id"] = history.add(res)
             return jsonify(res)
+        web = None
+        if body.get("web"):
+            web = websearch.fetch_for_claim(store, claim)
         res = pipeline.verify(store, claim, body.get("params"), CORPUS_DEFAULTS["live"])
         res["corpus"] = "live"
+        if web:
+            res["web"] = web
+            res["timings_ms"]["web_search"] = web["seconds"] * 1e3
+        res["history_id"] = history.add(res)
         return jsonify(res)
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
+
+
+@app.get("/api/history")
+def history_list():
+    return jsonify(history.list(request.args.get("q", "").strip(), request.args.get("limit", 200)))
+
+
+@app.get("/api/history/<int:hid>")
+def history_get(hid):
+    h = history.get(hid)
+    return (jsonify(h), 200) if h else (jsonify({"error": "no such history entry"}), 404)
+
+
+@app.delete("/api/history/<int:hid>")
+def history_delete(hid):
+    return jsonify({"deleted": history.delete(hid)})
+
+
+@app.delete("/api/history")
+def history_clear():
+    return jsonify({"deleted": history.delete()})
 
 
 @app.get("/api/fever/claims")

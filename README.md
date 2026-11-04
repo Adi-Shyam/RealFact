@@ -35,6 +35,13 @@ On Linux with GCC: `make OMP_CFLAGS=-fopenmp OMP_LIBS=-fopenmp EXT=so SHARED=-sh
 | `eval/run_eval.py` | FEVER / LIAR / FakeNewsNet harness with the label mapping from §I-B and leakage control. |
 | `web/` | The UI: Verify, What we learned (survey), Existing vs RealFact, Methodology, Parallel benchmark, Live corpus, Evaluation. |
 
+## Web search and verification history
+
+Both features were ported from the team's alternate prototype.
+
+- **Search the web first** (Verify tab, live news, on by default): before verifying, RealFact turns the claim into a keyword query and fetches up to 12 Google News RSS search results and the lead paragraphs of up to 3 Wikipedia pages (official MediaWiki API). New items are de-duplicated on (domain, headline), embedded and added to the live corpus with `origin = "web"`. They then go through the same OpenMP scan, duplicate clustering, NLI and independence weighting as RSS articles. Google News often returns several outlets carrying one wire story, and those collapse into one cluster. Typical cost is 2–3 s. Search-result HTML scraping is deliberately not used, and the Google News feed is meant for personal, non-commercial use, which covers this academic demo. Code: `backend/websearch.py`.
+- **History tab**: every verdict (live or FEVER) is saved with its full result in `data/history.sqlite` (git-ignored). You can search past checks, open one exactly as it was shown, re-run it against today's corpus, or delete it. Syndication stress-test runs aren't saved. API: `GET /api/history?q=`, `GET /api/history/<id>`, `DELETE /api/history/<id>`, `DELETE /api/history`. Code: `backend/history.py`.
+
 ## FEVER demo mode
 
 The Verify tab has an **Evidence corpus** switch. **FEVER demo (Wikipedia 2017)** verifies a fixed list of FEVER dev claims against a 25,324-page subset of the FEVER Wikipedia dump: the gold pages for the claims, 2,723 pages cited by other FEVER claims (hard distractors), and 22,476 random pages. Only the listed claims can be verified, and each result is shown next to FEVER's gold label and annotated evidence.

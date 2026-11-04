@@ -272,3 +272,16 @@ ul.clean li { margin: 4px 0; }
 .gold-row > div { min-width: 0; }
 .gold ul { margin: 8px 0 0; padding-left: 18px; font-size: 13.5px; }
 .gold li { margin: 4px 0; }
+
+/* web search + history */
+.web-toggle { display: flex; gap: 8px; align-items: flex-start; margin-top: 10px; font-size: 12.5px; color: var(--ink-2); cursor: pointer; }
+.web-toggle input { margin-top: 2px; flex: none; width: auto; }
+.web-tag { background: var(--accent-soft); color: var(--accent); font-size: 10.5px; padding: 1px 6px; border-radius: 5px; font-weight: 600; }
+.web-items { margin: 10px 0 0; max-height: 260px; overflow: auto; }
+.web-items li { padding: 4px 0; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+.web-items li:last-child { border-bottom: 0; }
+.hist-row { cursor: pointer; }
+.hist-row:hover td { background: var(--surface-2); }
+.hist-claim { max-width: 520px; overflow-wrap: anywhere; }
+.hist-actions { white-space: nowrap; text-align: right; }
+.hist-banner { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }

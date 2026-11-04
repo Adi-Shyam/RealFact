@@ -21,3 +21,4 @@ data/fever/embeddings.f32
 # Editor / OS / local tooling
 .DS_Store
 .claude/
+data/history.sqlite

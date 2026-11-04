@@ -97,7 +97,7 @@ def _article_view(a, score):
     return {
         "id": a["id"], "title": a["title"], "summary": a["summary"], "url": a["url"],
         "domain": a["domain"], "published_at": a["published_at"], "score": float(score),
-        "simulated": bool(a.get("simulated")),
+        "simulated": bool(a.get("simulated")), "origin": a.get("origin", "live"),
     }
 
 
