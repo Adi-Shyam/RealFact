@@ -1,0 +1,2567 @@
+{
+ "meta": {
+  "built_at": "2026-11-04 18:06:45",
+  "pages": 25324,
+  "claims": 179,
+  "per_label": {
+   "SUPPORTS": 60,
+   "REFUTES": 59,
+   "NOT ENOUGH INFO": 60
+  },
+  "gold_pages": 125,
+  "hard_distractors": 2723,
+  "random_pages": 22476,
+  "lead_lines": 5,
+  "gold_max_line": 3,
+  "seed": 2026,
+  "source": "FEVER shared_task_dev + wiki-pages (2017)"
+ },
+ "claims": [
+  {
+   "id": 23588,
+   "claim": "UNESCO's City of Literature program was launched in May of 2004.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "City of Literature",
+     "page_id": "City_of_Literature",
+     "line": 0,
+     "sentence": "UNESCO's City of Literature program is part of its Creative Cities Network which was launched in 2004."
+    }
+   ],
+   "gold_pages": [
+    "City_of_Literature"
+   ]
+  },
+  {
+   "id": 144500,
+   "claim": "Veep is a brand name.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Veep",
+     "page_id": "Veep",
+     "line": 0,
+     "sentence": "Veep is an American political satire comedy television series, starring Julia Louis-Dreyfus, that premiered on HBO on April 22, 2012."
+    }
+   ],
+   "gold_pages": [
+    "Veep"
+   ]
+  },
+  {
+   "id": 104308,
+   "claim": "Flaked was renewed for a season lasting six episodes.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Flaked",
+     "page_id": "Flaked",
+     "line": 2,
+     "sentence": "In July 2016, the series was renewed for a six-episode second season, which is scheduled to premiere on June 2, 2017."
+    }
+   ],
+   "gold_pages": [
+    "Flaked"
+   ]
+  },
+  {
+   "id": 143526,
+   "claim": "The Quran is Wiccan.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Quran",
+     "page_id": "Quran",
+     "line": 0,
+     "sentence": "The Quran ([k\u0254r\u02c8\u0251\u02d0n]; \u0627\u0644\u0642\u0631\u0622\u0646, literally meaning \"the recitation \"; also romanized Qur ` an or Koran) is the central religious text of Islam, which Muslims believe to be a revelation from God (Allah)."
+    }
+   ],
+   "gold_pages": [
+    "Quran"
+   ]
+  },
+  {
+   "id": 227140,
+   "claim": "New Orleans Pelicans compete in the NBA.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "New Orleans Pelicans",
+     "page_id": "New_Orleans_Pelicans",
+     "line": 1,
+     "sentence": "The Pelicans compete in the National Basketball Association (NBA) as a member club of the league's Western Conference Southwest Division."
+    }
+   ],
+   "gold_pages": [
+    "New_Orleans_Pelicans"
+   ]
+  },
+  {
+   "id": 160857,
+   "claim": "No Strings Attached was banned from releasing in the United States.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "No Strings Attached (film)",
+     "page_id": "No_Strings_Attached_-LRB-film-RRB-",
+     "line": 0,
+     "sentence": "No Strings Attached is a 2011 American romantic comedy film directed by Ivan Reitman and written by Elizabeth Meriwether."
+    },
+    {
+     "page": "No Strings Attached (film)",
+     "page_id": "No_Strings_Attached_-LRB-film-RRB-",
+     "line": 2,
+     "sentence": "The film was released in the United States on January 21, 2011."
+    }
+   ],
+   "gold_pages": [
+    "No_Strings_Attached_-LRB-film-RRB-"
+   ]
+  },
+  {
+   "id": 185991,
+   "claim": "Kyra Sedgwick failed to win any Golden Globe Award.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Kyra Sedgwick",
+     "page_id": "Kyra_Sedgwick",
+     "line": 2,
+     "sentence": "Sedgwick's role in the series won her a Golden Globe Award in 2007 and an Emmy Award in 2010."
+    }
+   ],
+   "gold_pages": [
+    "Kyra_Sedgwick"
+   ]
+  },
+  {
+   "id": 46177,
+   "claim": "Mutiny on the Bounty is Dutch.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Mutiny on the Bounty (1962 film)",
+     "page_id": "Mutiny_on_the_Bounty_-LRB-1962_film-RRB-",
+     "line": 0,
+     "sentence": "Mutiny on the Bounty is a 1962 American Technicolor epic historical drama film starring Marlon Brando, Trevor Howard and Richard Harris, based on the novel Mutiny on the Bounty by Charles Nordhoff and James Norman Hall."
+    }
+   ],
+   "gold_pages": [
+    "Mutiny_on_the_Bounty_-LRB-1962_film-RRB-"
+   ]
+  },
+  {
+   "id": 111274,
+   "claim": "Oscar Isaac was the main character in Star Wars: The Force Awakens.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 84709,
+   "claim": "Buffy the Vampire Slayer is created by Joss Whedon.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Buffy the Vampire Slayer",
+     "page_id": "Buffy_the_Vampire_Slayer",
+     "line": 0,
+     "sentence": "Buffy the Vampire Slayer is an American television series created by Joss Whedon under his production tag, Mutant Enemy Productions with later co-executive producers being Jane Espenson, David Fury, David Greenwalt, Doug Petrie, Marti Noxon, and David Solomon."
+    }
+   ],
+   "gold_pages": [
+    "Buffy_the_Vampire_Slayer"
+   ]
+  },
+  {
+   "id": 206454,
+   "claim": "Uta Hagan has a middle name.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Uta Hagen",
+     "page_id": "Uta_Hagen",
+     "line": 0,
+     "sentence": "Uta Thyra Hagen (12 June 1919 \u2013 14 January 2004) was an American actress and theatre practitioner."
+    }
+   ],
+   "gold_pages": [
+    "Uta_Hagen"
+   ]
+  },
+  {
+   "id": 203998,
+   "claim": "Glee.com was launched by Community Connect Inc. in 2007.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Glee.com",
+     "page_id": "Glee.com",
+     "line": 1,
+     "sentence": "The site was launched in February 2007 by Community Connect Inc.."
+    }
+   ],
+   "gold_pages": [
+    "Glee.com"
+   ]
+  },
+  {
+   "id": 172325,
+   "claim": "Scream 2 is a German film.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Scream 2",
+     "page_id": "Scream_2",
+     "line": 0,
+     "sentence": "Scream 2 is a 1997 American slasher film directed by Wes Craven and written by Kevin Williamson."
+    }
+   ],
+   "gold_pages": [
+    "Scream_2"
+   ]
+  },
+  {
+   "id": 179758,
+   "claim": "Wentworth Miller is yet to make his screenwriting debut.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Wentworth Miller",
+     "page_id": "Wentworth_Miller",
+     "line": 2,
+     "sentence": "He made his screenwriting debut with the 2013 thriller film Stoker."
+    },
+    {
+     "page": "Wentworth Miller",
+     "page_id": "Wentworth_Miller",
+     "line": 0,
+     "sentence": "Wentworth Earl Miller III (born June 2, 1972) is a British-American actor, model, and screenwriter."
+    }
+   ],
+   "gold_pages": [
+    "Wentworth_Miller"
+   ]
+  },
+  {
+   "id": 182678,
+   "claim": "Nina Jacobson worked for Buena Vista Motion Pictures Group until July 17, 2006.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 90469,
+   "claim": "Jenna Jameson has only been in newspaper advertising.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Jenna Jameson",
+     "page_id": "Jenna_Jameson",
+     "line": 0,
+     "sentence": "Jenna Jameson (born Jenna Marie Massoli; April 9, 1974) is an American entrepreneur, webcam model and former pornographic film actress, who has been called the world's most famous adult entertainment performer and \"The Queen of Porn \"."
+    },
+    {
+     "page": "Jenna Jameson",
+     "page_id": "Jenna_Jameson",
+     "line": 3,
+     "sentence": "She started acting in erotic videos in 1993 after having worked as a stripper and glamor model."
+    },
+    {
+     "page": "Jenna Jameson",
+     "page_id": "Jenna_Jameson",
+     "line": 4,
+     "sentence": "By 1996, she had won the \"top newcomer \"award from each of the three major adult-movie organizations."
+    }
+   ],
+   "gold_pages": [
+    "Jenna_Jameson"
+   ]
+  },
+  {
+   "id": 123189,
+   "claim": "See You on the Other Side was put out by Blink 182.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "See You on the Other Side (Korn album)",
+     "page_id": "See_You_on_the_Other_Side_-LRB-Korn_album-RRB-",
+     "line": 0,
+     "sentence": "See You on the Other Side is the seventh studio album by Korn."
+    }
+   ],
+   "gold_pages": [
+    "See_You_on_the_Other_Side_-LRB-Korn_album-RRB-"
+   ]
+  },
+  {
+   "id": 152918,
+   "claim": "Loretta Sanchez is only German.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Loretta Sanchez",
+     "page_id": "Loretta_Sanchez",
+     "line": 0,
+     "sentence": "Loretta L. S\u00e1nchez (born January 7, 1960) is an American politician who served in the United States House of Representatives from 1997 to 2017."
+    }
+   ],
+   "gold_pages": [
+    "Loretta_Sanchez"
+   ]
+  },
+  {
+   "id": 93412,
+   "claim": "Paul Nicholls played Sam Casey in Law & Order: UK.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Paul Nicholls (actor)",
+     "page_id": "Paul_Nicholls_-LRB-actor-RRB-",
+     "line": 1,
+     "sentence": "He is best known for his roles as Joe Wicks in BBC's EastEnders, and as DS Sam Casey in ITV's Law & Order: UK."
+    }
+   ],
+   "gold_pages": [
+    "Paul_Nicholls_-LRB-actor-RRB-"
+   ]
+  },
+  {
+   "id": 108997,
+   "claim": "Theresa May has always been unemployed.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Theresa May",
+     "page_id": "Theresa_May",
+     "line": 0,
+     "sentence": "Theresa Mary May (n\u00e9e Brasier; born 1 October 1956) is a British politician who has served as Prime Minister of the United Kingdom since 2016."
+    },
+    {
+     "page": "Theresa May",
+     "page_id": "Theresa_May",
+     "line": 1,
+     "sentence": "She has been the Member of Parliament (MP) for Maidenhead since 1997 and Leader of the Conservative Party since July 2016."
+    },
+    {
+     "page": "Theresa May",
+     "page_id": "Theresa_May",
+     "line": 2,
+     "sentence": "She is the second female Prime Minister and Conservative leader after Margaret Thatcher."
+    }
+   ],
+   "gold_pages": [
+    "Theresa_May"
+   ]
+  },
+  {
+   "id": 108753,
+   "claim": "Scaramouche is a translation.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Scaramouche",
+     "page_id": "Scaramouche",
+     "line": 0,
+     "sentence": "Scaramuccia (literally \"little skirmisher \"), also known as Scaramouche or Scaramouch, is a stock clown character of the Italian commedia dell ` arte."
+    }
+   ],
+   "gold_pages": [
+    "Scaramouche"
+   ]
+  },
+  {
+   "id": 165904,
+   "claim": "Alice Cooper sings, writes songs, and acts for a living.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Alice Cooper",
+     "page_id": "Alice_Cooper",
+     "line": 0,
+     "sentence": "Alice Cooper (born Vincent Damon Furnier; February 4, 1948) is an American singer, songwriter, and actor whose career spans over five decades."
+    }
+   ],
+   "gold_pages": [
+    "Alice_Cooper"
+   ]
+  },
+  {
+   "id": 130576,
+   "claim": "Bruce Shand died on a ranch.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 104426,
+   "claim": "Scandal is fronted by Patty Smyth.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Scandal (American band)",
+     "page_id": "Scandal_-LRB-American_band-RRB-",
+     "line": 0,
+     "sentence": "Scandal is an American rock band from the 1980s fronted by Patty Smyth."
+    }
+   ],
+   "gold_pages": [
+    "Scandal_-LRB-American_band-RRB-"
+   ]
+  },
+  {
+   "id": 105611,
+   "claim": "Stomp the Yard stars Chris Pine.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 50383,
+   "claim": "Manchester United was founded in November 1878.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 205111,
+   "claim": "Gaius Julius Caesar was a vegan.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 15139,
+   "claim": "Kendall Jenner is a celebrity.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 52330,
+   "claim": "Kuching is the landmass of Sarawak.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 194435,
+   "claim": "The Indiana Pacers were established as a member of Major League Baseball.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 89914,
+   "claim": "The Beverly Hillbillies ranked among the top 20 clothing stores in America.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 139701,
+   "claim": "The Book of Mormon won a Grammy Award for Best Musical Theater Album in 2013.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 68973,
+   "claim": "The Maltese language is a language that is Semitic.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Maltese language",
+     "page_id": "Maltese_language",
+     "line": 0,
+     "sentence": "Maltese (links = no) is the national language of Malta and a co-official language of the country alongside English, while also serving as an official language of the European Union, the only Semitic language so distinguished."
+    }
+   ],
+   "gold_pages": [
+    "Maltese_language"
+   ]
+  },
+  {
+   "id": 58918,
+   "claim": "Apple Inc. designed the IPhone 4.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "IPhone 4",
+     "page_id": "IPhone_4",
+     "line": 0,
+     "sentence": "The iPhone 4 is a smartphone that was designed and marketed by Apple Inc.."
+    }
+   ],
+   "gold_pages": [
+    "IPhone_4"
+   ]
+  },
+  {
+   "id": 16951,
+   "claim": "The Premier League Asia Trophy is a battle.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Premier League Asia Trophy",
+     "page_id": "Premier_League_Asia_Trophy",
+     "line": 0,
+     "sentence": "The Premier League Asia Trophy (formerly the FA Premier League Asia Cup) is a pre-season association football friendly tournament held biennial in Asia."
+    },
+    {
+     "page": "Premier League Asia Trophy",
+     "page_id": "Premier_League_Asia_Trophy",
+     "line": 1,
+     "sentence": "The two-day competition was inaugurated in 2003 and is \"the only Premier League-affiliated competition \"to be hosted outside England."
+    },
+    {
+     "page": "Premier League Asia Trophy",
+     "page_id": "Premier_League_Asia_Trophy",
+     "line": 7,
+     "sentence": "It employs a knockout system in which the winners of the first matches advance to the final, while the losing teams take part in a third place playoff."
+    }
+   ],
+   "gold_pages": [
+    "2017_Premier_League_Asia_Trophy",
+    "Premier_League",
+    "Premier_League_Asia_Trophy"
+   ]
+  },
+  {
+   "id": 25533,
+   "claim": "The 2003 NCAA Division I Men's Basketball Tournament was played.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "2003 NCAA Division I Men's Basketball Tournament",
+     "page_id": "2003_NCAA_Division_I_Men's_Basketball_Tournament",
+     "line": 0,
+     "sentence": "The 2003 NCAA Division I Men's Basketball Tournament involved 65 schools playing in single-elimination play to determine the national champion of men's NCAA Division I college basketball."
+    },
+    {
+     "page": "2003 NCAA Division I Men's Basketball Tournament",
+     "page_id": "2003_NCAA_Division_I_Men's_Basketball_Tournament",
+     "line": 2,
+     "sentence": "A total of 64 games were played."
+    }
+   ],
+   "gold_pages": [
+    "2003_NCAA_Division_I_Men's_Basketball_Tournament"
+   ]
+  },
+  {
+   "id": 19655,
+   "claim": "Tiber Oil Field was discovered in September 1909.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Tiber Oil Field",
+     "page_id": "Tiber_Oil_Field",
+     "line": 1,
+     "sentence": "The deepwater field (defined as water depth 1300 to,) was discovered in September 2009 and it is operated by BP."
+    },
+    {
+     "page": "Tiber Oil Field",
+     "page_id": "Tiber_Oil_Field",
+     "line": 0,
+     "sentence": "The Tiber Oil Field is a deepwater offshore oil field located in the Keathley Canyon block 102 of the United States sector of the Gulf of Mexico."
+    }
+   ],
+   "gold_pages": [
+    "Tiber_Oil_Field"
+   ]
+  },
+  {
+   "id": 108698,
+   "claim": "Julianne Moore is a Buddhist.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 114792,
+   "claim": "Blue Jasmine is incapable of being a film.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Blue Jasmine",
+     "page_id": "Blue_Jasmine",
+     "line": 0,
+     "sentence": "Blue Jasmine is a 2013 American black comedy-drama film written and directed by Woody Allen."
+    },
+    {
+     "page": "Blue Jasmine",
+     "page_id": "Blue_Jasmine",
+     "line": 2,
+     "sentence": "The film had a limited release on July 26, 2013, in New York and Los Angeles, before expanding wide on August 23, 2013."
+    }
+   ],
+   "gold_pages": [
+    "Blue_Jasmine"
+   ]
+  },
+  {
+   "id": 110420,
+   "claim": "Fist of Legend is a remake of Fist of Fury.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Fist of Legend",
+     "page_id": "Fist_of_Legend",
+     "line": 2,
+     "sentence": "It is a remake of the 1972 Fist of Fury, which starred Bruce Lee as the lead character."
+    }
+   ],
+   "gold_pages": [
+    "Fist_of_Legend"
+   ]
+  },
+  {
+   "id": 211804,
+   "claim": "Brick (film) was the highest grossing film Joseph Gordon-Levitt was part of.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 130666,
+   "claim": "Ed Wood featured the performance of Tom Hanks.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 132490,
+   "claim": "Tim McGraw had a supporting role in the Watergate scandal.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 209346,
+   "claim": "Alexandria is the largest seaport in Egypt.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Alexandria",
+     "page_id": "Alexandria",
+     "line": 2,
+     "sentence": "Alexandria is Egypt's largest seaport, serving approximately 80 % of Egypt's imports and exports."
+    }
+   ],
+   "gold_pages": [
+    "Alexandria"
+   ]
+  },
+  {
+   "id": 113558,
+   "claim": "Yugoslavia is also written Rossiya.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 96943,
+   "claim": "Hot Right Now is off of DJ Fresh's fourth album.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Hot Right Now",
+     "page_id": "Hot_Right_Now",
+     "line": 0,
+     "sentence": "\" Hot Right Now \"is a single by British drum and bass producer DJ Fresh, released as the second single from his third studio album, Nextlevelism."
+    }
+   ],
+   "gold_pages": [
+    "Hot_Right_Now"
+   ]
+  },
+  {
+   "id": 55230,
+   "claim": "Advertising is used to promote a device.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 37675,
+   "claim": "Southern Hospitality came out at #86 on the Billboard Hot 100.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Southern Hospitality (song)",
+     "page_id": "Southern_Hospitality_-LRB-song-RRB-",
+     "line": 2,
+     "sentence": "The song debuted at # 86 on the Billboard Hot 100 on January 20, 2001, reached the Top 40 at # 38 on February 10, 2001, and peaked at # 23 on March 24."
+    }
+   ],
+   "gold_pages": [
+    "Southern_Hospitality_-LRB-song-RRB-"
+   ]
+  },
+  {
+   "id": 156075,
+   "claim": "Aarhus is located on the west coast of the Jutland peninsula.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Aarhus",
+     "page_id": "Aarhus",
+     "line": 1,
+     "sentence": "It is located on the east coast of the Jutland peninsula, in the geographical centre of Denmark, 187 km northwest of Copenhagen and 289 km north of Hamburg, Germany."
+    }
+   ],
+   "gold_pages": [
+    "Aarhus"
+   ]
+  },
+  {
+   "id": 93998,
+   "claim": "Anthony Scaramucci is a person.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Anthony Scaramucci",
+     "page_id": "Anthony_Scaramucci",
+     "line": 0,
+     "sentence": "Anthony Scaramucci (born January 6, 1964) is an American entrepreneur, financier, political figure, and author."
+    }
+   ],
+   "gold_pages": [
+    "Anthony_Scaramucci"
+   ]
+  },
+  {
+   "id": 59573,
+   "claim": "The American Civil War ended in the 19th century.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "American Civil War",
+     "page_id": "American_Civil_War",
+     "line": 0,
+     "sentence": "The American Civil War was fought in the United States from 1861 to 1865."
+    }
+   ],
+   "gold_pages": [
+    "American_Civil_War"
+   ]
+  },
+  {
+   "id": 72250,
+   "claim": "Toy Story 2 is a computer-animated movie.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Toy Story 2",
+     "page_id": "Toy_Story_2",
+     "line": 0,
+     "sentence": "Toy Story 2 is a 1999 American computer-animated comedy adventure film produced by Pixar Animation Studios and released by Walt Disney Pictures."
+    }
+   ],
+   "gold_pages": [
+    "Toy_Story_2"
+   ]
+  },
+  {
+   "id": 203369,
+   "claim": "Goosebumps (film) was directed by Rob Letterman.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Goosebumps (film)",
+     "page_id": "Goosebumps_-LRB-film-RRB-",
+     "line": 1,
+     "sentence": "It was directed by Rob Letterman, and written by Darren Lemke, based from a story by Scott Alexander and Larry Karaszewski."
+    }
+   ],
+   "gold_pages": [
+    "Goosebumps_-LRB-film-RRB-"
+   ]
+  },
+  {
+   "id": 58896,
+   "claim": "Omar Khadr was detained at Guantanamo Bay.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Omar Khadr",
+     "page_id": "Omar_Khadr",
+     "line": 0,
+     "sentence": "Omar Ahmed Sayid Khadr (born September 19, 1986) is a Canadian who was detained at Guantanamo Bay as a minor and held there for 10 years."
+    }
+   ],
+   "gold_pages": [
+    "Omar_Khadr"
+   ]
+  },
+  {
+   "id": 47605,
+   "claim": "Tye Sheridan was an actor in The Tree of Life.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Tye Sheridan",
+     "page_id": "Tye_Sheridan",
+     "line": 1,
+     "sentence": "Sheridan made his feature film debut in Terrence Malick's experimental drama film The Tree of Life (2011) and had his first leading role in Jeff Nichols's film Mud (2012)."
+    }
+   ],
+   "gold_pages": [
+    "Tye_Sheridan"
+   ]
+  },
+  {
+   "id": 160053,
+   "claim": "Levoamphetamine improves the ability to focus on tasks.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Levoamphetamine",
+     "page_id": "Levoamphetamine",
+     "line": 0,
+     "sentence": "Levoamphetamine, also known as levamfetamine (INN), (R) - amphetamine, - amphetamine, and L-amphetamine, is a central nervous system (CNS) stimulant known to increase wakefulness and concentration in association with decreased appetite and fatigue."
+    }
+   ],
+   "gold_pages": [
+    "Levoamphetamine"
+   ]
+  },
+  {
+   "id": 91387,
+   "claim": "Keith Stanfield date of birth is August 12, 1991.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Keith Stanfield",
+     "page_id": "Keith_Stanfield",
+     "line": 0,
+     "sentence": "LaKeith Lee \"Keith \"Stanfield (born August 12, 1991) is an American actor and rapper."
+    }
+   ],
+   "gold_pages": [
+    "Keith_Stanfield"
+   ]
+  },
+  {
+   "id": 207326,
+   "claim": "Military deception overlaps with a type of warfare.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Military deception",
+     "page_id": "Military_deception",
+     "line": 2,
+     "sentence": "As a form of strategic use of information (disinformation), it overlaps with psychological warfare."
+    }
+   ],
+   "gold_pages": [
+    "Military_deception"
+   ]
+  },
+  {
+   "id": 212335,
+   "claim": "Mary-Kate Olsen and Ashley Olsen are also known as the Olsen twins when referred to collectively.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Mary-Kate and Ashley Olsen",
+     "page_id": "Mary-Kate_and_Ashley_Olsen",
+     "line": 0,
+     "sentence": "Mary-Kate Olsen and Ashley Olsen (born June 13, 1986), also known as the Olsen twins collectively, are American fashion designers and former child actresses."
+    }
+   ],
+   "gold_pages": [
+    "Mary-Kate_and_Ashley_Olsen"
+   ]
+  },
+  {
+   "id": 206157,
+   "claim": "Palo Alto, California is a city.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Palo Alto, California",
+     "page_id": "Palo_Alto,_California",
+     "line": 0,
+     "sentence": "Palo Alto ([\u02ccp\u00e6lo\u028a_\u02c8\u00e6lto\u028a]; [\u02c8palo \u02c8alto]; from palo, literally \"stick \", colloquially \"tree \", and alto \"tall \"; meaning: \"tall tree \") is a charter city located in the northwest corner of Santa Clara County, California, in the San Francisco Bay Area of the United States."
+    },
+    {
+     "page": "Palo Alto, California",
+     "page_id": "Palo_Alto,_California",
+     "line": 1,
+     "sentence": "The city shares its borders with East Palo Alto, Mountain View, Los Altos, Los Altos Hills, Stanford, Portola Valley, and Menlo Park."
+    },
+    {
+     "page": "Palo Alto, California",
+     "page_id": "Palo_Alto,_California",
+     "line": 6,
+     "sentence": "The city includes portions of Stanford and is headquarters to a number of high-technology companies, including Hewlett-Packard (HP), Space Systems/Loral, VMware, Tesla Motors, Ford Research and Innovation Center, PARC, IDEO, Skype, Palantir Technologies, and Houzz."
+    }
+   ],
+   "gold_pages": [
+    "Palo_Alto,_California"
+   ]
+  },
+  {
+   "id": 37557,
+   "claim": "Francis I of France reigned from 1515 until his death.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Francis I of France",
+     "page_id": "Francis_I_of_France",
+     "line": 0,
+     "sentence": "Francis I (Fran\u00e7ois Ier) (12 September 1494 \u2013 31 March 1547) was the first King of France from the Angoul\u00eame branch of the House of Valois, reigning from 1515 until his death."
+    }
+   ],
+   "gold_pages": [
+    "Francis_I_of_France"
+   ]
+  },
+  {
+   "id": 183610,
+   "claim": "Finding Dory was penned by someone who works primarily at Pixar.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 108281,
+   "claim": "Andrew Kevin Walker is only Chinese.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Andrew Kevin Walker",
+     "page_id": "Andrew_Kevin_Walker",
+     "line": 0,
+     "sentence": "Andrew Kevin Walker (born August 14, 1964) is an American BAFTA-nominated screenwriter."
+    }
+   ],
+   "gold_pages": [
+    "Andrew_Kevin_Walker"
+   ]
+  },
+  {
+   "id": 117192,
+   "claim": "B. R. Ambedkar did not live in India.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "B. R. Ambedkar",
+     "page_id": "B._R._Ambedkar",
+     "line": 0,
+     "sentence": "Bhimrao Ramji Ambedkar (14 April 1891 \u2013 6 December 1956), popularly known as Baba Saheb, was an Indian jurist, economist, politician and social reformer who inspired the Dalit Buddhist Movement and campaigned against social discrimination against Untouchables (Dalits), while also supporting the rights of women and labour."
+    },
+    {
+     "page": "B. R. Ambedkar",
+     "page_id": "B._R._Ambedkar",
+     "line": 1,
+     "sentence": "He was Independent India's first law minister and the principal architect of the Constitution of India."
+    }
+   ],
+   "gold_pages": [
+    "B._R._Ambedkar"
+   ]
+  },
+  {
+   "id": 132294,
+   "claim": "House of Balloons is by a American singer.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "House of Balloons",
+     "page_id": "House_of_Balloons",
+     "line": 0,
+     "sentence": "House of Balloons is the debut mixtape by Canadian singer The Weeknd."
+    },
+    {
+     "page": "The Weeknd",
+     "page_id": "The_Weeknd",
+     "line": 0,
+     "sentence": "The Weeknd (born Abel Makkonen Tesfaye; February 16, 1990) is a Canadian singer, songwriter, and record producer."
+    }
+   ],
+   "gold_pages": [
+    "House_of_Balloons",
+    "The_Weeknd"
+   ]
+  },
+  {
+   "id": 108240,
+   "claim": "Aparshakti Khurana made an appearance in Dangal.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 202769,
+   "claim": "Despicable Me 2 was produced for Yahoo.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 125803,
+   "claim": "Jason Bourne is a book.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Jason Bourne (film)",
+     "page_id": "Jason_Bourne_-LRB-film-RRB-",
+     "line": 0,
+     "sentence": "Jason Bourne is a 2016 American action thriller film directed by Paul Greengrass written by Greengrass and Christopher Rouse."
+    }
+   ],
+   "gold_pages": [
+    "Jason_Bourne_-LRB-film-RRB-"
+   ]
+  },
+  {
+   "id": 192773,
+   "claim": "A staging area is a location where material are assembled after use.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 79548,
+   "claim": "Topman sells men's accessories.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 120173,
+   "claim": "The Prowler was created by Stan Lee, John Buscema, and Jim Morrison.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Prowler (comics)",
+     "page_id": "Prowler_-LRB-comics-RRB-",
+     "line": 1,
+     "sentence": "Created by writer-editor Stan Lee, John Buscema and Jim Mooney, Prowler made his first appearance in The Amazing Spider-Man # 78."
+    }
+   ],
+   "gold_pages": [
+    "Prowler_-LRB-comics-RRB-"
+   ]
+  },
+  {
+   "id": 97418,
+   "claim": "Shane McMahon is a balloon.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Shane McMahon",
+     "page_id": "Shane_McMahon",
+     "line": 0,
+     "sentence": "Shane Brandon McMahon (born January 15, 1970) is an American businessman and part-time professional wrestler who is a minority owner of WWE and the vice-chairman of Wecast Holdings Inc.."
+    },
+    {
+     "page": "Shane McMahon",
+     "page_id": "Shane_McMahon",
+     "line": 1,
+     "sentence": "He is currently the on-screen commissioner of WWE's weekly television show SmackDown Live."
+    },
+    {
+     "page": "Shane McMahon",
+     "page_id": "Shane_McMahon",
+     "line": 4,
+     "sentence": "McMahon is a fourth-generation wrestling promoter as a member of the McMahon family."
+    }
+   ],
+   "gold_pages": [
+    "Professional_wrestling",
+    "Shane_McMahon"
+   ]
+  },
+  {
+   "id": 225815,
+   "claim": "Chinatown's producer is a Gemini.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 146132,
+   "claim": "The Challenge: Rivals III is the 18th season of a reality game show.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "The Challenge: Rivals III",
+     "page_id": "The_Challenge-COLON-_Rivals_III",
+     "line": 0,
+     "sentence": "The Challenge: Rivals III is the 28th season of the MTV reality game show, The Challenge."
+    }
+   ],
+   "gold_pages": [
+    "The_Challenge-COLON-_Rivals_III"
+   ]
+  },
+  {
+   "id": 177150,
+   "claim": "Invasion literature is a genre.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Invasion literature",
+     "page_id": "Invasion_literature",
+     "line": 0,
+     "sentence": "Invasion literature (or the invasion novel) is a literary genre most notable between 1871 and the First World War (1914) but still practised to this day."
+    }
+   ],
+   "gold_pages": [
+    "Invasion_literature"
+   ]
+  },
+  {
+   "id": 227114,
+   "claim": "Blank Space is on a top 100 list in numerous countries.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 89920,
+   "claim": "Michigan is the smallest state by total area east of the Mississippi River.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Michigan",
+     "page_id": "Michigan",
+     "line": 2,
+     "sentence": "Michigan is the tenth most populous of the 50 United States, with the 11th most extensive total area (the largest state by total area east of the Mississippi River)."
+    }
+   ],
+   "gold_pages": [
+    "Michigan"
+   ]
+  },
+  {
+   "id": 215867,
+   "claim": "Patrick is Jerome Flynn's middle name.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Jerome Flynn",
+     "page_id": "Jerome_Flynn",
+     "line": 0,
+     "sentence": "Jerome Patrick Flynn (born 16 March 1963) is an English actor and singer."
+    }
+   ],
+   "gold_pages": [
+    "Jerome_Flynn"
+   ]
+  },
+  {
+   "id": 93957,
+   "claim": "San Francisco is where Blue Jasmine took place.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 81756,
+   "claim": "Physics is a fundamental scientific discipline.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Physics",
+     "page_id": "Physics",
+     "line": 1,
+     "sentence": "One of the most fundamental scientific disciplines, the main goal of physics is to understand how the universe behaves."
+    }
+   ],
+   "gold_pages": [
+    "Physics"
+   ]
+  },
+  {
+   "id": 9891,
+   "claim": "Yin and yang have a half of the opposite element in each half .",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 119942,
+   "claim": "John Goodman starred in a music video.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 159693,
+   "claim": "Edgar Wright is American.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Edgar Wright",
+     "page_id": "Edgar_Wright",
+     "line": 0,
+     "sentence": "Edgar Howard Wright (born 18 April 1974) is an English director, screenwriter, producer, and actor."
+    }
+   ],
+   "gold_pages": [
+    "Edgar_Wright"
+   ]
+  },
+  {
+   "id": 19417,
+   "claim": "Walt Disney inspired Osamu Tezuka.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Osamu Tezuka",
+     "page_id": "Osamu_Tezuka",
+     "line": 2,
+     "sentence": "Additionally, he is often considered the Japanese equivalent to Walt Disney, who served as a major inspiration during Tezuka's formative years."
+    }
+   ],
+   "gold_pages": [
+    "Osamu_Tezuka"
+   ]
+  },
+  {
+   "id": 45439,
+   "claim": "Rabies affects the brain.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Rabies",
+     "page_id": "Rabies",
+     "line": 0,
+     "sentence": "Rabies is a viral disease that causes inflammation of the brain in humans and other mammals."
+    }
+   ],
+   "gold_pages": [
+    "Rabies"
+   ]
+  },
+  {
+   "id": 188971,
+   "claim": "William Cohen is from Oregon.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "William Cohen",
+     "page_id": "William_Cohen",
+     "line": 0,
+     "sentence": "William Sebastian Cohen (born August 28, 1940) is an American politician and author from the U.S. state of Maine."
+    }
+   ],
+   "gold_pages": [
+    "William_Cohen"
+   ]
+  },
+  {
+   "id": 197374,
+   "claim": "Sim\u00f3n Bol\u00edvar was atheist.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 47172,
+   "claim": "Yvonne Strahovski is an Australian silent film actress.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 222727,
+   "claim": "Vedic Sanskrit is the language used in Hindi texts.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 130820,
+   "claim": "Jack Dylan Grazer was born on October 3, 2003.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Jack Dylan Grazer",
+     "page_id": "Jack_Dylan_Grazer",
+     "line": 0,
+     "sentence": "Jack Dylan Grazer (born September 3, 2003) is an American child actor and was born in Los Angeles, California to parents Angela Lafever and Gavin Grazer."
+    }
+   ],
+   "gold_pages": [
+    "Jack_Dylan_Grazer"
+   ]
+  },
+  {
+   "id": 170419,
+   "claim": "Michael Vick was conceived on June 26th, 1980.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Michael Vick",
+     "page_id": "Michael_Vick",
+     "line": 0,
+     "sentence": "Michael Dwayne Vick (born June 26, 1980) is a former American football quarterback who played 13 seasons in the National Football League, primarily with the Atlanta Falcons and the Philadelphia Eagles."
+    }
+   ],
+   "gold_pages": [
+    "Michael_Vick"
+   ]
+  },
+  {
+   "id": 105212,
+   "claim": "Aristotle never shared his knowledge.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 185388,
+   "claim": "CHiPs is based on a TV series of the same name.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "CHiPs (film)",
+     "page_id": "CHiPs_-LRB-film-RRB-",
+     "line": 0,
+     "sentence": "CHiPs is a 2017 American action comedy buddy cop film written and directed by Dax Shepard, based on the 1977 \u2013 1983 television series of the same name created by Rick Rosner."
+    }
+   ],
+   "gold_pages": [
+    "CHiPs_-LRB-film-RRB-"
+   ]
+  },
+  {
+   "id": 111251,
+   "claim": "Tremont Street Subway served a light rail station on the MBTA Green Line system, and is located on the southeast corner of Boston Common at the intersection of Boylston Street and Tremont Street called Boylston station.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 209845,
+   "claim": "Tie Your Mother Down was released as a single.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Tie Your Mother Down",
+     "page_id": "Tie_Your_Mother_Down",
+     "line": 2,
+     "sentence": "On its original release as a single in 1977 the song peaked at 31 in the UK Singles Chart, however more than 20 years later it was released as a double a-side to \"No-One But You (Only the Good Die Young) \"where it reached 13 in UK Singles Chart."
+    }
+   ],
+   "gold_pages": [
+    "Tie_Your_Mother_Down"
+   ]
+  },
+  {
+   "id": 14654,
+   "claim": "Zoe Saldana was born in Chicago.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 47414,
+   "claim": "The Concert for Bangladesh provided valuable lessons and inspiration for projects that came after.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 40251,
+   "claim": "Papua was formerly called the dead body.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 12121,
+   "claim": "AMGTV does not have sports television programming.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "AMGTV",
+     "page_id": "AMGTV",
+     "line": 0,
+     "sentence": "AMGTV is an American family-oriented television network featuring television programming consisting of drama, sports, movies, entertainment, how-to, hunting and fishing, children's shows, and other features."
+    }
+   ],
+   "gold_pages": [
+    "AMGTV"
+   ]
+  },
+  {
+   "id": 82208,
+   "claim": "Younger did not premier in 2015.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Younger (TV series)",
+     "page_id": "Younger_-LRB-TV_series-RRB-",
+     "line": 2,
+     "sentence": "The series premiered on March 31, 2015 on TV Land and received generally positive reviews from critics."
+    }
+   ],
+   "gold_pages": [
+    "Younger_-LRB-TV_series-RRB-"
+   ]
+  },
+  {
+   "id": 80909,
+   "claim": "Fred Armisen is a frog.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Fred Armisen",
+     "page_id": "Fred_Armisen",
+     "line": 0,
+     "sentence": "Fereydun Robert \"Fred \"Armisen (born December 4, 1966) is an American actor, comedian, voice artist, screenwriter, producer, singer, and musician."
+    },
+    {
+     "page": "Fred Armisen",
+     "page_id": "Fred_Armisen",
+     "line": 1,
+     "sentence": "Widely known as a cast member on Saturday Night Live from 2002 until 2013, Armisen has portrayed characters in comedy films, including EuroTrip, Anchorman, and Cop Out."
+    },
+    {
+     "page": "Fred Armisen",
+     "page_id": "Fred_Armisen",
+     "line": 2,
+     "sentence": "With his comedy partner Carrie Brownstein, Armisen is the co-creator and co-star of the IFC sketch comedy series Portlandia."
+    }
+   ],
+   "gold_pages": [
+    "Fred_Armisen"
+   ]
+  },
+  {
+   "id": 155930,
+   "claim": "Louie (season 1) began airing in 2000.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Louie (season 1)",
+     "page_id": "Louie_-LRB-season_1-RRB-",
+     "line": 0,
+     "sentence": "The first season of the American television comedy series Louie premiered on June 29, 2010 and concluded on September 7, 2010."
+    }
+   ],
+   "gold_pages": [
+    "Louie_-LRB-season_1-RRB-"
+   ]
+  },
+  {
+   "id": 205113,
+   "claim": "Gaius Julius Caesar was a bassist.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 118104,
+   "claim": "Meteora is by an American band.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Meteora (album)",
+     "page_id": "Meteora_-LRB-album-RRB-",
+     "line": 0,
+     "sentence": "Meteora is the second studio album by American rock band Linkin Park."
+    }
+   ],
+   "gold_pages": [
+    "Meteora_-LRB-album-RRB-"
+   ]
+  },
+  {
+   "id": 38599,
+   "claim": "Kojol received an award.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Kajol",
+     "page_id": "Kajol",
+     "line": 2,
+     "sentence": "Regarded as one of India's most successful and highest-paid actresses, Kajol is the recipient of numerous accolades, including six Filmfare Awards, among twelve nominations."
+    },
+    {
+     "page": "Kajol",
+     "page_id": "Kajol",
+     "line": 4,
+     "sentence": "In 2011, the Government of India awarded her with the Padma Shri, the fourth highest civilian honour of the country."
+    },
+    {
+     "page": "Kajol",
+     "page_id": "Kajol",
+     "line": 8,
+     "sentence": "She rose to prominence by featuring as the female lead in four of India's annually top-grossing romances \u2013 Yeh Dillagi (1994), Pyaar Kiya To Darna Kya (1998), Pyaar To Hona Hi Tha (1998) and Hum Aapke Dil Mein Rehte Hain (1999) \u2013 and received wide critical recognition for playing against type in the 1997 mystery film Gupt: The Hidden Truth, that earned her a Filmfare Award for Best Villain, and the 1998 psychological thriller Dushman."
+    }
+   ],
+   "gold_pages": [
+    "Kajol"
+   ]
+  },
+  {
+   "id": 85937,
+   "claim": "Reign Over Me is a film.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Reign Over Me",
+     "page_id": "Reign_Over_Me",
+     "line": 0,
+     "sentence": "Reign Over Me is a 2007 American drama film written and directed by Mike Binder, and produced by his brother Jack Binder."
+    },
+    {
+     "page": "Reign Over Me",
+     "page_id": "Reign_Over_Me",
+     "line": 1,
+     "sentence": "The film stars Adam Sandler, Don Cheadle, Jada Pinkett Smith, Liv Tyler, Donald Sutherland, Saffron Burrows and Mike Binder himself."
+    },
+    {
+     "page": "Don Cheadle",
+     "page_id": "Don_Cheadle",
+     "line": 3,
+     "sentence": "Other films include Volcano (1997), The Rat Pack (1998), Things Behind the Sun (2001), Swordfish (2001), Crash (2004), Ocean's Twelve (2004), Ocean's Thirteen (2007), Reign Over Me (2007), Talk to Me (2007), Traitor (2008) and The Guard."
+    }
+   ],
+   "gold_pages": [
+    "Don_Cheadle",
+    "Reign_Over_Me"
+   ]
+  },
+  {
+   "id": 41656,
+   "claim": "Issa Rae stars in Awkward Black Girl.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Issa Rae",
+     "page_id": "Issa_Rae",
+     "line": 1,
+     "sentence": "She is best known as the creator of the YouTube web series Awkward Black Girl."
+    },
+    {
+     "page": "Awkward Black Girl",
+     "page_id": "Awkward_Black_Girl",
+     "line": 0,
+     "sentence": "The Mis-Adventures of Awkward Black Girl (often simply referred to as Awkward Black Girl) is an American comedy web series created by and starring Issa Rae."
+    },
+    {
+     "page": "Issa Rae",
+     "page_id": "Issa_Rae",
+     "line": 2,
+     "sentence": "Since the premiere of Awkward Black Girl, Rae has developed her own YouTube platform where she features various content created by people of color."
+    }
+   ],
+   "gold_pages": [
+    "Awkward_Black_Girl",
+    "Issa_Rae"
+   ]
+  },
+  {
+   "id": 68758,
+   "claim": "Carlos Santana was in a rock band.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Carlos Santana",
+     "page_id": "Carlos_Santana",
+     "line": 0,
+     "sentence": "Carlos Santana (born July 20, 1947) is a Mexican and American musician who first became famous in the late 1960s and early 1970s with his band, Santana, which pioneered a fusion of rock and Latin American music."
+    }
+   ],
+   "gold_pages": [
+    "Carlos_Santana"
+   ]
+  },
+  {
+   "id": 47589,
+   "claim": "Yara Shahidi is Chinese.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Yara Shahidi",
+     "page_id": "Yara_Shahidi",
+     "line": 0,
+     "sentence": "Yara Sayeh Shahidi \u0634\u0647\u06cc\u062f\u06cc [j\u0251\u02d0\u027e\u0251\u02d0 s\u0251\u02d0je \u0283\u00e6hi\u02d0di\u02d0]) (born February 10, 2000) is an American actress and model."
+    }
+   ],
+   "gold_pages": [
+    "Yara_Shahidi"
+   ]
+  },
+  {
+   "id": 212228,
+   "claim": "Gory Guerrero was born on January 1st, 1911.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Gory Guerrero",
+     "page_id": "Gory_Guerrero",
+     "line": 0,
+     "sentence": "Salvador Guerrero Quesada (January 11, 1921 \u2013 April 18, 1990), better known as Gory Guerrero, was one of the premier Hispanic professional wrestlers in the early days of Lucha Libre when most wrestlers were imported from outside of Mexico."
+    }
+   ],
+   "gold_pages": [
+    "Gory_Guerrero"
+   ]
+  },
+  {
+   "id": 150654,
+   "claim": "The Quiet is only a television show.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "The Quiet",
+     "page_id": "The_Quiet",
+     "line": 0,
+     "sentence": "The Quiet is a 2005 American drama thriller film directed by Jamie Babbit and starring Camilla Belle and Elisha Cuthbert."
+    },
+    {
+     "page": "The Quiet",
+     "page_id": "The_Quiet",
+     "line": 4,
+     "sentence": "The film was acquired by Destination Films, which released this film in the United States theatrically through Sony Pictures Classics on August 25, 2006, and marketed with the tagline: \"Isn't it time everyone hears your secrets? \""
+    },
+    {
+     "page": "The Quiet",
+     "page_id": "The_Quiet",
+     "line": 8,
+     "sentence": "The film's soundtrack features songs by Low, Cat Power, Le Tigre, and numerous Beethoven piano sonatas."
+    }
+   ],
+   "gold_pages": [
+    "The_Quiet"
+   ]
+  },
+  {
+   "id": 89254,
+   "claim": "The Chrysler Building was the world's tallest building for 8 months.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Chrysler Building",
+     "page_id": "Chrysler_Building",
+     "line": 1,
+     "sentence": "At 318.9 m, the structure was the world's tallest building for 11 months before it was surpassed by the Empire State Building in 1931."
+    }
+   ],
+   "gold_pages": [
+    "Chrysler_Building"
+   ]
+  },
+  {
+   "id": 168091,
+   "claim": "Jean-Jacques Dessalines was born in 1758.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Jean-Jacques Dessalines",
+     "page_id": "Jean-Jacques_Dessalines",
+     "line": 0,
+     "sentence": "Jean-Jacques Dessalines ([\u0292\u0251\u0303 \u0292ak d\u025bs.salin]; 20 September 1758 \u2013 17 October 1806) was a leader of the Haitian Revolution and the first ruler of an independent Haiti under the 1805 constitution."
+    }
+   ],
+   "gold_pages": [
+    "Jean-Jacques_Dessalines"
+   ]
+  },
+  {
+   "id": 124215,
+   "claim": "Manchester by the Sea is a town.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Manchester by the Sea (film)",
+     "page_id": "Manchester_by_the_Sea_-LRB-film-RRB-",
+     "line": 0,
+     "sentence": "Manchester by the Sea is a 2016 American drama film written and directed by Kenneth Lonergan, and starring Casey Affleck, Michelle Williams, Kyle Chandler, and Lucas Hedges."
+    }
+   ],
+   "gold_pages": [
+    "Manchester_by_the_Sea_-LRB-film-RRB-"
+   ]
+  },
+  {
+   "id": 202792,
+   "claim": "Illumination Mac Guff animated Despicable Me 2.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Despicable Me 2",
+     "page_id": "Despicable_Me_2",
+     "line": 1,
+     "sentence": "Produced by Illumination Entertainment for Universal Pictures, and animated by Illumination Mac Guff, the film is directed by Pierre Coffin and Chris Renaud, and written by Cinco Paul and Ken Daurio."
+    }
+   ],
+   "gold_pages": [
+    "Despicable_Me_2"
+   ]
+  },
+  {
+   "id": 171647,
+   "claim": "Dave Gibbons is an Indian comic book artist.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Dave Gibbons",
+     "page_id": "Dave_Gibbons",
+     "line": 0,
+     "sentence": "David Chester \"Dave \"Gibbons (born 14 April 1949) is an English comic book artist, writer and sometimes letterer."
+    }
+   ],
+   "gold_pages": [
+    "Dave_Gibbons"
+   ]
+  },
+  {
+   "id": 641,
+   "claim": "Goldie Hawn had a career that lasted 34 years.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 135557,
+   "claim": "Michael B. Jordan was born in Austria.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 222654,
+   "claim": "A United Kingdom is a work.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "A United Kingdom",
+     "page_id": "A_United_Kingdom",
+     "line": 0,
+     "sentence": "A United Kingdom is a 2016 British biographical romantic drama film directed by Amma Asante and written by Guy Hibbert, based on the true-life romance between Sir Seretse Khama and his wife Ruth Williams Khama."
+    }
+   ],
+   "gold_pages": [
+    "A_United_Kingdom"
+   ]
+  },
+  {
+   "id": 49785,
+   "claim": "Kendall Jenner is unfamous.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Kendall Jenner",
+     "page_id": "Kendall_Jenner",
+     "line": 7,
+     "sentence": "As of April 2017, she is one of the top 15 most followed celebrities on Instagram."
+    },
+    {
+     "page": "Kendall Jenner",
+     "page_id": "Kendall_Jenner",
+     "line": 6,
+     "sentence": "Jenner made her debut at No. 16 on Forbes magazine's 2015 list of top earning models, with an estimated annual income of."
+    },
+    {
+     "page": "Kendall Jenner",
+     "page_id": "Kendall_Jenner",
+     "line": 4,
+     "sentence": "After working in commercial print ad campaigns and photoshoots, Jenner had breakout seasons in 2014 and 2015, walking the runways for high fashion designers during the New York, Milan, and Paris Fashion Weeks."
+    }
+   ],
+   "gold_pages": [
+    "Kendall_Jenner"
+   ]
+  },
+  {
+   "id": 203627,
+   "claim": "Steven Spielberg's directorial debut was the 1974 crime film The Sugarland Express.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "The Sugarland Express",
+     "page_id": "The_Sugarland_Express",
+     "line": 3,
+     "sentence": "The Sugarland Express is a 1974 American crime drama film co-written and directed by Steven Spielberg in his theatrical feature film directorial debut."
+    }
+   ],
+   "gold_pages": [
+    "The_Sugarland_Express"
+   ]
+  },
+  {
+   "id": 122678,
+   "claim": "Caroline Kennedy is Catholic.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 112585,
+   "claim": "A sailor shirt is typically worn by Donald Duck.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Donald Duck",
+     "page_id": "Donald_Duck",
+     "line": 2,
+     "sentence": "He typically wears a sailor shirt and cap with a bow tie."
+    }
+   ],
+   "gold_pages": [
+    "Donald_Duck"
+   ]
+  },
+  {
+   "id": 34000,
+   "claim": "The Romani people have music.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 18483,
+   "claim": "The Cincinnati Kid is only a book.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "The Cincinnati Kid",
+     "page_id": "The_Cincinnati_Kid",
+     "line": 0,
+     "sentence": "The Cincinnati Kid is a 1965 American drama film."
+    },
+    {
+     "page": "The Cincinnati Kid",
+     "page_id": "The_Cincinnati_Kid",
+     "line": 6,
+     "sentence": "The film was directed by Norman Jewison and stars Steve McQueen in the title role and Edward G. Robinson as Howard."
+    },
+    {
+     "page": "The Cincinnati Kid",
+     "page_id": "The_Cincinnati_Kid",
+     "line": 7,
+     "sentence": "Jewison, who replaced original director Sam Peckinpah shortly after filming began, describes The Cincinnati Kid as his \"ugly duckling \"film."
+    }
+   ],
+   "gold_pages": [
+    "The_Cincinnati_Kid"
+   ]
+  },
+  {
+   "id": 56523,
+   "claim": "Wildfang was founded.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Wildfang",
+     "page_id": "Wildfang",
+     "line": 1,
+     "sentence": "The company was founded in 2010 by Emma Mcilroy and Julia Parsley, who previously worked at Nike, Inc. in Portland, Oregon."
+    }
+   ],
+   "gold_pages": [
+    "Wildfang"
+   ]
+  },
+  {
+   "id": 210206,
+   "claim": "GLOW (TV series) is incapable of being released.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "GLOW (TV series)",
+     "page_id": "GLOW_-LRB-TV_series-RRB-",
+     "line": 3,
+     "sentence": "The first season will be released on Netflix on June 23, 2017."
+    }
+   ],
+   "gold_pages": [
+    "GLOW_-LRB-TV_series-RRB-"
+   ]
+  },
+  {
+   "id": 107364,
+   "claim": "Night of the Living Dead is a 1990 cinematic work from the United States.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Night of the Living Dead",
+     "page_id": "Night_of_the_Living_Dead",
+     "line": 0,
+     "sentence": "Night of the Living Dead is a 1968 American independent horror film, directed by George A. Romero, starring Duane Jones and Judith O'Dea."
+    }
+   ],
+   "gold_pages": [
+    "Night_of_the_Living_Dead"
+   ]
+  },
+  {
+   "id": 53005,
+   "claim": "The Challenge: Rivals III is the worst rated season of a reality game show.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 132541,
+   "claim": "Liam Neeson bought a British Academy of Film and Television Arts award.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 143287,
+   "claim": "Jewell worked with other artists.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Jewell (singer)",
+     "page_id": "Jewell_-LRB-singer-RRB-",
+     "line": 3,
+     "sentence": "She is best known for her song, \"Love or Lust, \"featured in Bill Duke's film, Deep Cover, as well as for singing choruses to many classic West Coast rap songs such as Snoop Dogg's \"Gin and Juice \"and Dr. Dre's \"Let Me Ride \"."
+    }
+   ],
+   "gold_pages": [
+    "Jewell_-LRB-singer-RRB-"
+   ]
+  },
+  {
+   "id": 158306,
+   "claim": "Bessie Smith was a singer.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Bessie Smith",
+     "page_id": "Bessie_Smith",
+     "line": 0,
+     "sentence": "Bessie Smith (April 15, 1894 \u2013 September 26, 1937) was an American blues singer."
+    }
+   ],
+   "gold_pages": [
+    "Bessie_Smith"
+   ]
+  },
+  {
+   "id": 59980,
+   "claim": "The Gettysburg Address was delivered by someone who was an assassin.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 145705,
+   "claim": "Eva Green made her film debut in a 2001 film directed by Bernardo Bertolucci.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Eva Green",
+     "page_id": "Eva_Green",
+     "line": 1,
+     "sentence": "She started her career in theatre before making her film debut in 2003 in Bernardo Bertolucci's film The Dreamers."
+    }
+   ],
+   "gold_pages": [
+    "Eva_Green"
+   ]
+  },
+  {
+   "id": 76317,
+   "claim": "Psych (season 2) originally aired on the moon.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Psych (season 2)",
+     "page_id": "Psych_-LRB-season_2-RRB-",
+     "line": 0,
+     "sentence": "The second season of Psych originally aired in the United States on USA Network from July 13, 2007 to February 15, 2008."
+    }
+   ],
+   "gold_pages": [
+    "Psych_-LRB-season_2-RRB-"
+   ]
+  },
+  {
+   "id": 125309,
+   "claim": "The Invisible Man was a romantic film.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "The Invisible Man (film)",
+     "page_id": "The_Invisible_Man_-LRB-film-RRB-",
+     "line": 0,
+     "sentence": "The Invisible Man is an American 1933 Pre-Code science fiction horror film based on H. G. Wells ' science fiction novel The Invisible Man, published in 1897, as adapted by R.C. Sherriff, Philip Wylie and Preston Sturges, whose work was considered unsatisfactory and who was taken off the project."
+    }
+   ],
+   "gold_pages": [
+    "The_Invisible_Man_-LRB-film-RRB-"
+   ]
+  },
+  {
+   "id": 186995,
+   "claim": "The Bermuda Triangle is located completely within the Dead Sea.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Bermuda Triangle",
+     "page_id": "Bermuda_Triangle",
+     "line": 0,
+     "sentence": "The Bermuda Triangle, also known as the Devil's Triangle, is a loosely-defined region in the western part of the North Atlantic Ocean, where a number of aircraft and ships are said to have disappeared under mysterious circumstances."
+    }
+   ],
+   "gold_pages": [
+    "Bermuda_Triangle"
+   ]
+  },
+  {
+   "id": 161566,
+   "claim": "Baz Luhrmann's film Waluigi is an epic historical romantic drama.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 117495,
+   "claim": "The Paper was only directed by Steven Spielberg.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "The Paper (film)",
+     "page_id": "The_Paper_-LRB-film-RRB-",
+     "line": 0,
+     "sentence": "The Paper is a 1994 American comedy-drama film directed by Ron Howard and starring Michael Keaton, Glenn Close, Marisa Tomei, Randy Quaid and Robert Duvall."
+    }
+   ],
+   "gold_pages": [
+    "The_Paper_-LRB-film-RRB-"
+   ]
+  },
+  {
+   "id": 175650,
+   "claim": "Fabian Nicieza created over a hundred characters for comic books.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 184062,
+   "claim": "Kenneth Lonergan is from New York.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 136214,
+   "claim": "Two and a Half Men is an American television sitcom released in 1999.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Two and a Half Men",
+     "page_id": "Two_and_a_Half_Men",
+     "line": 0,
+     "sentence": "Two and a Half Men is an American television sitcom that originally aired on CBS for twelve seasons from September 22, 2003 to February 19, 2015."
+    }
+   ],
+   "gold_pages": [
+    "Two_and_a_Half_Men"
+   ]
+  },
+  {
+   "id": 222724,
+   "claim": "Vedic Sanskrit is a language.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Vedic Sanskrit",
+     "page_id": "Vedic_Sanskrit",
+     "line": 0,
+     "sentence": "Vedic Sanskrit is an Indo-European language, more specifically one branch of the Indo-Iranian group."
+    }
+   ],
+   "gold_pages": [
+    "Vedic_Sanskrit"
+   ]
+  },
+  {
+   "id": 59208,
+   "claim": "Hermit crabs belong to a superfamily.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Hermit crab",
+     "page_id": "Hermit_crab",
+     "line": 0,
+     "sentence": "Hermit crabs are decapod crustaceans of the superfamily Paguroidea."
+    }
+   ],
+   "gold_pages": [
+    "Hermit_crab"
+   ]
+  },
+  {
+   "id": 8727,
+   "claim": "Sayyeshaa made her Bollywood debut in the 2016 film Shivaay.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Sayyeshaa",
+     "page_id": "Sayyeshaa",
+     "line": 1,
+     "sentence": "After starring a Telugu film Akhil (2015), she made her Bollywood debut in Ajay Devgn's Shivaay (2016)."
+    }
+   ],
+   "gold_pages": [
+    "Sayyeshaa"
+   ]
+  },
+  {
+   "id": 135823,
+   "claim": "Nuuk is the island of Greenland.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 223693,
+   "claim": "UNICEF UK is the only UNICEF National Committee.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "UNICEF UK",
+     "page_id": "UNICEF_UK",
+     "line": 0,
+     "sentence": "UNICEF UK, also known as the United Kingdom Committee for UNICEF, is one of 36 UNICEF National Committees based in industrialised countries."
+    },
+    {
+     "page": "UNICEF UK",
+     "page_id": "UNICEF_UK",
+     "line": 1,
+     "sentence": "The National Committees raise funds for the organisation's worldwide emergency and development work."
+    }
+   ],
+   "gold_pages": [
+    "UNICEF_UK"
+   ]
+  },
+  {
+   "id": 216371,
+   "claim": "The Chagatai language was a creole language.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 221085,
+   "claim": "A&E is a cable and satellite television network.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "A&E (TV channel)",
+     "page_id": "A&E_-LRB-TV_channel-RRB-",
+     "line": 0,
+     "sentence": "A&E (previously Arts & Entertainment Network) is an American cable and satellite television channel that serves as the flagship television property of A&E Networks, a joint venture between the Hearst Corporation and Disney \u2013 ABC Television Group subsidiary of the Walt Disney Company (both of which maintain a 50 % ownership interest)."
+    }
+   ],
+   "gold_pages": [
+    "A&E_-LRB-TV_channel-RRB-"
+   ]
+  },
+  {
+   "id": 113912,
+   "claim": "James, Viscount Severn was born in the 1990s.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "James, Viscount Severn",
+     "page_id": "James,_Viscount_Severn",
+     "line": 0,
+     "sentence": "James, Viscount Severn (James Alexander Philip Theo Mountbatten-Windsor; born 17 December 2007) is the younger child and only son of Prince Edward, Earl of Wessex, and Sophie, Countess of Wessex, and the youngest grandchild of Queen Elizabeth II and Prince Philip, Duke of Edinburgh."
+    }
+   ],
+   "gold_pages": [
+    "James,_Viscount_Severn"
+   ]
+  },
+  {
+   "id": 127266,
+   "claim": "The Bahamas is a democratic state.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 67630,
+   "claim": "Oscar Isaac acted.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Oscar Isaac",
+     "page_id": "Oscar_Isaac",
+     "line": 0,
+     "sentence": "Oscar Isaac (born \u00d3scar Isaac Hern\u00e1ndez Estrada; March 9, 1979) is a Guatemalan-American actor and musician."
+    },
+    {
+     "page": "Oscar Isaac",
+     "page_id": "Oscar_Isaac",
+     "line": 1,
+     "sentence": "He is known for his lead film roles in the comedy-drama Inside Llewyn Davis (2013), for which he received a Golden Globe Award nomination, the crime drama A Most Violent Year (2014) and the science fiction thriller Ex Machina (2015), in which he played Nathan Hamlet Bateman."
+    },
+    {
+     "page": "Oscar Isaac",
+     "page_id": "Oscar_Isaac",
+     "line": 3,
+     "sentence": "He also portrayed Jos\u00e9 Ramos-Horta, former president of East Timor, in the Australian film Balibo for which he won the AACTA Award for Best Actor in a Supporting Role."
+    }
+   ],
+   "gold_pages": [
+    "Oscar_Isaac"
+   ]
+  },
+  {
+   "id": 154190,
+   "claim": "Grease came out in 1654.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Grease (film)",
+     "page_id": "Grease_-LRB-film-RRB-",
+     "line": 0,
+     "sentence": "Grease is a 1978 American musical romantic comedy film based on Jim Jacobs and Warren Casey's musical of the same name."
+    }
+   ],
+   "gold_pages": [
+    "Grease_-LRB-film-RRB-"
+   ]
+  },
+  {
+   "id": 142899,
+   "claim": "Fred Seibert only has a career as a gospel record producer.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Fred Seibert",
+     "page_id": "Fred_Seibert",
+     "line": 3,
+     "sentence": "He has produced live action and animated programs for cable television, and the internet, and began his professional career as a jazz and blues record producer."
+    }
+   ],
+   "gold_pages": [
+    "Fred_Seibert"
+   ]
+  },
+  {
+   "id": 101380,
+   "claim": "Sierra Morena is the Spanish name for a mountain range.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 171497,
+   "claim": "Jiang Wen is a Chinese cuisine.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Jiang Wen",
+     "page_id": "Jiang_Wen",
+     "line": 0,
+     "sentence": "Jiang Wen (born 5 January 1963) is a Chinese film actor, screenwriter, and director."
+    }
+   ],
+   "gold_pages": [
+    "Jiang_Wen"
+   ]
+  },
+  {
+   "id": 119416,
+   "claim": "The Greek language is spoken in France.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 202994,
+   "claim": "The current Chief Executive Officer of Lockheed Martin was born in Japan.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 124664,
+   "claim": "Roberto Orci wrote Star Trek Into Darkness with Alex Kurtzman and Damon Lindelof.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 60110,
+   "claim": "Night of the Living Dead is a series of seven zombie horror films.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 195056,
+   "claim": "Albert S. Ruddy is born on March 24, 1930.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Albert S. Ruddy",
+     "page_id": "Albert_S._Ruddy",
+     "line": 0,
+     "sentence": "Albert S. Ruddy (born March 28, 1930) is a Canadian-born film and television producer."
+    }
+   ],
+   "gold_pages": [
+    "Albert_S._Ruddy"
+   ]
+  },
+  {
+   "id": 6916,
+   "claim": "Underdog features the voice talents of Angelina Jolie.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 216397,
+   "claim": "Homer Hickman has written science fiction novels.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Homer Hickam",
+     "page_id": "Homer_Hickam",
+     "line": 2,
+     "sentence": "Hickam has also written a number of best-selling memoirs and novels including the \"Josh Thurlow \"historical fiction novels."
+    }
+   ],
+   "gold_pages": [
+    "Homer_Hickam"
+   ]
+  },
+  {
+   "id": 220288,
+   "claim": "Peter Yates directed the film Bullitt.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Bullitt",
+     "page_id": "Bullitt",
+     "line": 0,
+     "sentence": "Bullitt is a 1968 American drama \u2013 thriller film directed by Peter Yates and produced by Philip D'Antoni."
+    }
+   ],
+   "gold_pages": [
+    "Bullitt"
+   ]
+  },
+  {
+   "id": 64115,
+   "claim": "Menace II Society is set in 1991.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 39176,
+   "claim": "Heath Ledger was in a film inspired by the Cuban Missile Crisis.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 15941,
+   "claim": "Spider-Man 2 was written by Alvin Sargent in 2003.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Spider-Man 2",
+     "page_id": "Spider-Man_2",
+     "line": 0,
+     "sentence": "Spider-Man 2 is a 2004 American superhero film directed by Sam Raimi and written by Alvin Sargent from a story by Alfred Gough, Miles Millar, and Michael Chabon."
+    }
+   ],
+   "gold_pages": [
+    "Spider-Man_2"
+   ]
+  },
+  {
+   "id": 186939,
+   "claim": "The album Cher was created only by Bon Jovi.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Cher (1987 album)",
+     "page_id": "Cher_-LRB-1987_album-RRB-",
+     "line": 0,
+     "sentence": "Cher is the self-titled eighteenth studio album by American singer-actress Cher, released on November 10, 1987 by Geffen Records."
+    }
+   ],
+   "gold_pages": [
+    "Cher_-LRB-1987_album-RRB-"
+   ]
+  },
+  {
+   "id": 147526,
+   "claim": "Personality is affected by development.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Personality",
+     "page_id": "Personality",
+     "line": 0,
+     "sentence": "Personality is a set of individual differences that are affected by the development of an individual: values, attitudes, personal memories, social relationships, habits, and skills."
+    }
+   ],
+   "gold_pages": [
+    "Personality"
+   ]
+  },
+  {
+   "id": 63090,
+   "claim": "Fred Seibert has produced live action commercials.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 33603,
+   "claim": "Ed Decter is a vegetarian.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 111049,
+   "claim": "Kenneth Branagh stars in The Road to El Dorado.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "The Road to El Dorado",
+     "page_id": "The_Road_to_El_Dorado",
+     "line": 2,
+     "sentence": "The film stars Kevin Kline, Kenneth Branagh, Armand Assante, Jim Cummings, Edward James Olmos, Tobin Bell and Rosie Perez."
+    }
+   ],
+   "gold_pages": [
+    "The_Road_to_El_Dorado"
+   ]
+  },
+  {
+   "id": 65940,
+   "claim": "Victoria Palace Theatre is in a location with its moniker descend from Queen Victoria.",
+   "label": "NOT ENOUGH INFO",
+   "evidence": [],
+   "gold_pages": []
+  },
+  {
+   "id": 165865,
+   "claim": "Buffy Summers has been portrayed by Kristy Swanson.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Buffy Summers",
+     "page_id": "Buffy_Summers",
+     "line": 3,
+     "sentence": "Buffy was portrayed by Kristy Swanson in the film, and later by Sarah Michelle Gellar in the television series."
+    }
+   ],
+   "gold_pages": [
+    "Buffy_Summers"
+   ]
+  },
+  {
+   "id": 178348,
+   "claim": "Al Jardine sang lead vocals in a band.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Al Jardine",
+     "page_id": "Al_Jardine",
+     "line": 1,
+     "sentence": "He is best known as the band's rhythm guitarist, and for occasionally singing lead vocals on singles such as \"Help Me, Rhonda \"(1965), \"Then I Kissed Her \"(1965) and \"Come Go with Me \"(1978)."
+    }
+   ],
+   "gold_pages": [
+    "Al_Jardine"
+   ]
+  },
+  {
+   "id": 169003,
+   "claim": "Manmohan Singh was only a prime minister before Jawaharlal Nehru.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "Manmohan Singh",
+     "page_id": "Manmohan_Singh",
+     "line": 1,
+     "sentence": "The first Sikh in office, Singh was also the first prime minister since Jawaharlal Nehru to be re-elected after completing a full five-year term."
+    }
+   ],
+   "gold_pages": [
+    "Manmohan_Singh"
+   ]
+  },
+  {
+   "id": 199750,
+   "claim": "Tijuana is part of at least one metropolitan area.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Tijuana",
+     "page_id": "Tijuana",
+     "line": 0,
+     "sentence": "Tijuana ([ti\u02d0\u02c8w\u0251\u02d0n\u0259]; [ti\u02c8xwana]) is the largest city in Baja California and on the Baja California Peninsula and center of the Tijuana metropolitan area, part of the international San Diego \u2013 Tijuana metropolitan area."
+    }
+   ],
+   "gold_pages": [
+    "Tijuana"
+   ]
+  },
+  {
+   "id": 132495,
+   "claim": "Danger UXB is a work.",
+   "label": "SUPPORTS",
+   "evidence": [
+    {
+     "page": "Danger UXB",
+     "page_id": "Danger_UXB",
+     "line": 0,
+     "sentence": "Danger UXB is a 1979 British ITV television series set during the Second World War developed by John Hawkesworth and starring Anthony Andrews as Lieutenant Brian Ash, an officer in the Royal Engineers."
+    }
+   ],
+   "gold_pages": [
+    "Danger_UXB"
+   ]
+  },
+  {
+   "id": 205641,
+   "claim": "St. Anger was released by Hillary Clinton.",
+   "label": "REFUTES",
+   "evidence": [
+    {
+     "page": "St. Anger",
+     "page_id": "St._Anger",
+     "line": 1,
+     "sentence": "It was the band's last album released through Elektra, thus marking the end of the second-longest timespan between studio albums from Metallica, with nearly six years between the release of Reload and this album."
+    },
+    {
+     "page": "St. Anger",
+     "page_id": "St._Anger",
+     "line": 0,
+     "sentence": "St. Anger is the eighth studio album by American heavy metal band Metallica, released on June 5, 2003, by Elektra Records."
+    },
+    {
+     "page": "St. Anger",
+     "page_id": "St._Anger",
+     "line": 2,
+     "sentence": "It is also the final collaboration between Metallica and producer Bob Rock, whose relationship began with the band's fifth studio album, 1991's Metallica."
+    }
+   ],
+   "gold_pages": [
+    "St._Anger"
+   ]
+  }
+ ]
+}

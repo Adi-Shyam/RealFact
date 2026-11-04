@@ -16,8 +16,9 @@ from .config import DEFAULTS
 from .engine import omp_engine, serial_engine
 
 
-def params_from(req):
+def params_from(req, overrides=None):
     p = dict(DEFAULTS)
+    p.update(overrides or {})
     for k, v in (req or {}).items():
         if k in p and v is not None and v != "":
             t = type(DEFAULTS[k])
@@ -100,8 +101,8 @@ def _article_view(a, score):
     }
 
 
-def verify(store, claim, req=None):
-    p = params_from(req)
+def verify(store, claim, req=None, defaults=None):
+    p = params_from(req, defaults)
     timings = {}
     t_all = time.perf_counter()
     emb = store.emb
@@ -163,7 +164,7 @@ def verify(store, claim, req=None):
     arts = store.articles(wanted - set(synthetic))
     arts.update({r: synthetic[r] for r in wanted if r in synthetic})
     t = time.perf_counter()
-    stances = models.classify(claim, [f"{arts[r]['title']}. {arts[r]['summary']}" for r in nli_rows])
+    stances = models.classify(claim, [f"{arts[r]['title']}. {arts[r]['summary']}" for r in nli_rows], p["nli_model"])
     timings["nli"] = time.perf_counter() - t
     stance_of = dict(zip(nli_rows, stances))
     score_of = {int(i): float(s) for i, s in zip(cand_idx, cand_scores)}

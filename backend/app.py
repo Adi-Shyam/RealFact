@@ -9,7 +9,8 @@ import uuid
 from flask import Flask, jsonify, request, send_from_directory
 
 from . import bench, pipeline
-from .config import DATA_DIR, DEFAULTS, EMBED_MODEL, FEEDS, NLI_MODEL, ROOT
+from .config import (CORPUS_DEFAULTS, DATA_DIR, DEFAULTS, EMBED_MODEL, FEEDS, FEVER_CLAIMS_PATH, FEVER_DB_PATH,
+                     FEVER_EMB_PATH, NLI_MODEL, ROOT)
 from .engine import omp_engine
 from .ingest import ingest
 from .store import Store
@@ -29,6 +30,36 @@ def no_cache(resp):
 
 store = Store()
 jobs = {}
+_fever = {"store": None, "claims": None, "mtime": None}
+
+
+def fever():
+    """The FEVER demo corpus, loaded lazily and reloaded if scripts/build_fever_demo.py rebuilt it."""
+    if not os.path.exists(FEVER_CLAIMS_PATH):
+        return None
+    mtime = os.path.getmtime(FEVER_CLAIMS_PATH)
+    if _fever["mtime"] != mtime:
+        with open(FEVER_CLAIMS_PATH) as f:
+            data = json.load(f)
+        _fever.update(store=Store(FEVER_DB_PATH, FEVER_EMB_PATH), claims=data, mtime=mtime,
+                      by_text={c["claim"]: c for c in data["claims"]})
+    return _fever
+
+
+def fever_gold(result, gold):
+    """Attach the FEVER gold label and say whether retrieval found the gold page, and at which cluster rank."""
+    pages = set(gold["gold_pages"])
+    hit_rank = None
+    for e in result["evidence"]:
+        urls = {m["url"].rsplit("/", 1)[-1] for m in e["members"]}
+        ids = {u.replace("(", "-LRB-").replace(")", "-RRB-") for u in urls}
+        if ids & pages:
+            hit_rank = e["rank"]
+            break
+    mapped = {"Supported": "SUPPORTS", "Contradicted": "REFUTES",
+              "Unverified": "NOT ENOUGH INFO", "Conflicting Evidence": "NOT ENOUGH INFO"}[result["verdict"]]
+    return {"label": gold["label"], "evidence": gold["evidence"], "gold_pages": gold["gold_pages"],
+            "gold_retrieved_rank": hit_rank, "system_label": mapped, "correct": mapped == gold["label"]}
 ingest_lock = threading.Lock()
 
 
@@ -82,8 +113,11 @@ def web(p):
 @app.get("/api/status")
 def status():
     eng = omp_engine()
+    fv = fever()
     return jsonify({
-        "corpus_size": store.size, "defaults": DEFAULTS, "embed_model": EMBED_MODEL, "nli_model": NLI_MODEL,
+        "corpus_size": store.size, "defaults": DEFAULTS, "corpus_defaults": CORPUS_DEFAULTS,
+        "fever": {"available": bool(fv), "size": fv["store"].size if fv else 0,
+                  "meta": fv["claims"]["meta"] if fv else None}, "embed_model": EMBED_MODEL, "nli_model": NLI_MODEL,
         "openmp": eng.has_openmp, "max_threads": eng.max_threads, "feeds": len(FEEDS),
         "ingesting": ingest_lock.locked(), "refresh_minutes": REFRESH_SECONDS / 60,
         "platform": bench.platform_info(),
@@ -94,12 +128,34 @@ def status():
 def verify():
     body = request.get_json(force=True)
     claim = (body.get("claim") or "").strip()
+    corpus = body.get("corpus", "live")
     if not claim:
         return jsonify({"error": "Enter a claim to verify."}), 400
     try:
-        return jsonify(pipeline.verify(store, claim, body.get("params")))
+        if corpus == "fever":
+            fv = fever()
+            if not fv:
+                return jsonify({"error": "The FEVER demo corpus is not built. Run: .venv/bin/python -m scripts.build_fever_demo"}), 400
+            gold = fv["by_text"].get(claim)
+            if gold is None:
+                return jsonify({"error": "The FEVER demo only verifies the listed claims. Pick one from the list."}), 400
+            res = pipeline.verify(fv["store"], claim, body.get("params"), CORPUS_DEFAULTS["fever"])
+            res["corpus"] = "fever"
+            res["fever"] = fever_gold(res, gold)
+            return jsonify(res)
+        res = pipeline.verify(store, claim, body.get("params"), CORPUS_DEFAULTS["live"])
+        res["corpus"] = "live"
+        return jsonify(res)
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
+
+
+@app.get("/api/fever/claims")
+def fever_claims():
+    fv = fever()
+    if not fv:
+        return jsonify(None)
+    return jsonify(fv["claims"])
 
 
 @app.post("/api/ingest")
@@ -181,6 +237,8 @@ def warm_models():
     from . import models
     models.embed_claim("warm up")
     models.classify("warm up", ["warm up"])
+    if fever():
+        models.classify("warm up", ["warm up"], CORPUS_DEFAULTS["fever"]["nli_model"])
 
 
 def main():

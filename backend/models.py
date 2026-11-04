@@ -7,8 +7,7 @@ from .config import EMBED_MODEL, NLI_MODEL, BGE_QUERY_PREFIX
 
 _lock = threading.Lock()
 _embedder = None
-_nli = None
-_nli_labels = None
+_nli = {}  # model name -> (CrossEncoder, labels)
 
 
 def embedder():
@@ -35,22 +34,21 @@ def embed_claim(claim):
     return v[0].astype(np.float32)
 
 
-def nli_model():
-    global _nli, _nli_labels
+def nli_model(name=NLI_MODEL):
     with _lock:
-        if _nli is None:
+        if name not in _nli:
             from sentence_transformers import CrossEncoder
-            _nli = CrossEncoder(NLI_MODEL, device="cpu")
-            id2label = _nli.model.config.id2label
-            _nli_labels = [id2label[i].lower() for i in range(len(id2label))]
-    return _nli, _nli_labels
+            model = CrossEncoder(name, device="cpu")
+            id2label = model.config.id2label if hasattr(model, "config") else model.model.config.id2label
+            _nli[name] = (model, [id2label[i].lower() for i in range(len(id2label))])
+    return _nli[name]
 
 
-def classify(claim, premises):
+def classify(claim, premises, model_name=NLI_MODEL):
     """NLI(premise=evidence, hypothesis=claim) -> list of (stance sigma in {+1,-1,0}, label, p, probs)."""
     if not premises:
         return []
-    model, labels = nli_model()
+    model, labels = nli_model(model_name)
     logits = model.predict([(p, claim) for p in premises], convert_to_numpy=True, show_progress_bar=False)
     logits = np.atleast_2d(logits)
     probs = np.exp(logits - logits.max(axis=1, keepdims=True))

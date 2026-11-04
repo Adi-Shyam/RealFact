@@ -30,7 +30,7 @@ import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from backend import pipeline  # noqa: E402
-from backend.config import DATA_DIR  # noqa: E402
+from backend.config import CORPUS_DEFAULTS, DATA_DIR, FEVER_CLAIMS_PATH, FEVER_DB_PATH, FEVER_EMB_PATH  # noqa: E402
 from backend.ingest import normalise_headline  # noqa: E402
 from backend.store import Store  # noqa: E402
 
@@ -57,6 +57,13 @@ def load_liar(path):
                 yield {"claim": row[2], "gold": LIAR_MAP[row[1]], "orig": row[1]}
 
 
+def load_fever_demo(path):
+    """Curated FEVER dev claims of the demo corpus (data/fever/demo_claims.json)."""
+    with open(path) as f:
+        for c in json.load(f)["claims"]:
+            yield {"claim": c["claim"], "gold": FEVER_MAP[c["label"]], "orig": c["label"], "gold_pages": c["gold_pages"]}
+
+
 def load_fakenewsnet(path):
     for fn in sorted(glob.glob(os.path.join(path, "*.csv"))):
         lab = "CONTRADICT" if "fake" in os.path.basename(fn) else "SUPPORT"
@@ -64,6 +71,16 @@ def load_fakenewsnet(path):
             for r in csv.DictReader(f):
                 if r.get("title"):
                     yield {"claim": r["title"], "gold": lab, "orig": "fake" if lab == "CONTRADICT" else "real"}
+
+
+def gold_rank(res, gold_pages):
+    """1-based rank of the first kept cluster containing a gold page, or None."""
+    pages = set(gold_pages)
+    for e in res["evidence"]:
+        ids = {m["url"].rsplit("/", 1)[-1].replace("(", "-LRB-").replace(")", "-RRB-") for m in e["members"]}
+        if ids & pages:
+            return e["rank"]
+    return None
 
 
 def prf(gold, pred, labels):
@@ -84,29 +101,39 @@ def prf(gold, pred, labels):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--dataset", required=True, choices=["fever", "liar", "fakenewsnet"])
-    ap.add_argument("--path", required=True)
+    ap.add_argument("--dataset", required=True, choices=["fever", "fever-demo", "liar", "fakenewsnet"])
+    ap.add_argument("--path", default=None, help="dataset file; fever-demo defaults to data/fever/demo_claims.json")
     ap.add_argument("--limit", type=int, default=500)
     ap.add_argument("--seed", type=int, default=13)
     a = ap.parse_args()
 
-    loader = {"fever": load_fever, "liar": load_liar, "fakenewsnet": load_fakenewsnet}[a.dataset]
+    loader = {"fever": load_fever, "fever-demo": load_fever_demo, "liar": load_liar,
+              "fakenewsnet": load_fakenewsnet}[a.dataset]
+    if a.path is None:
+        if a.dataset != "fever-demo":
+            ap.error("--path is required for this dataset")
+        a.path = FEVER_CLAIMS_PATH
     items = list(loader(a.path))
     random.Random(a.seed).shuffle(items)
     items = items[: a.limit]
-    store = Store()
+    demo = a.dataset == "fever-demo"
+    store = Store(FEVER_DB_PATH, FEVER_EMB_PATH) if demo else Store()
+    defaults = CORPUS_DEFAULTS["fever" if demo else "live"]
     titles = [normalise_headline(r["title"]) for r in store.db.execute("SELECT title FROM articles ORDER BY id")]
 
     modes = ["independence_log", "one_vote", "naive_count", "filter_off"]
     preds = {m: [] for m in modes}
     verdicts = {m: [] for m in modes}
-    gold, orig, lat = [], [], []
+    gold, orig, lat, ranks = [], [], [], []
     for i, it in enumerate(items):
         # Leakage control: never let a claim retrieve its own source article.
         key = normalise_headline(it["claim"])
         mask = np.array([t == key for t in titles], dtype=np.uint8)
         t0 = time.perf_counter()
-        res = pipeline.verify(store, it["claim"], {"exclude_mask": mask})
+        # The demo corpus is Wikipedia: the claim is never an article title, so no leakage mask is needed.
+        res = pipeline.verify(store, it["claim"], None if demo else {"exclude_mask": mask}, defaults)
+        if it.get("gold_pages"):
+            ranks.append(gold_rank(res, it["gold_pages"]))
         lat.append(time.perf_counter() - t0)
         for m in modes:
             v = res["ablations"][m]["verdict"]
@@ -120,8 +147,10 @@ def main():
     report = {"dataset": a.dataset, "n": len(items), "corpus_size": store.size,
               "finished_at": time.strftime("%Y-%m-%d %H:%M:%S"),
               "p95_latency_ms": float(np.percentile(lat, 95) * 1e3), "median_latency_ms": float(np.median(lat) * 1e3),
-              "recall_at_k": "undefined: gold evidence is not in the live news corpus" if a.dataset != "fakenewsnet"
-              else "requires FakeNewsNet source-URL crawl", "modes": {}}
+              "recall_at_k": ({f"@{k}": float(np.mean([r is not None and r <= k for r in ranks])) for k in (1, 5, 10)}
+                              if ranks else "undefined: gold evidence is not in the live news corpus" if a.dataset != "fakenewsnet"
+                              else "requires FakeNewsNet source-URL crawl"),
+              "params": pipeline.params_from(None, defaults), "modes": {}}
     for m in modes:
         r = prf(gold, preds[m], LABELS)
         r["verdict_counts"] = dict(Counter(verdicts[m]))
@@ -130,6 +159,8 @@ def main():
             mid = [k for k, o in enumerate(orig) if LIAR_MAP[o] == "NEUTRAL"]
             r["two_sided_band"] = prf([gold[k] for k in two], [preds[m][k] for k in two], LABELS)["accuracy"]
             r["middle_band_verdicts"] = dict(Counter(verdicts[m][k] for k in mid))
+        if a.dataset in ("fever", "fever-demo"):
+            r["nei_band_verdicts"] = dict(Counter(verdicts[m][k] for k, o in enumerate(orig) if o == "NOT ENOUGH INFO"))
         if a.dataset == "fakenewsnet":
             g2 = ["SUPPORT" if g == "SUPPORT" else "NOT_SUPPORTED" for g in gold]
             p2 = ["SUPPORT" if p == "SUPPORT" else "NOT_SUPPORTED" for p in preds[m]]

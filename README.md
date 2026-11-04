@@ -35,6 +35,23 @@ On Linux with GCC: `make OMP_CFLAGS=-fopenmp OMP_LIBS=-fopenmp EXT=so SHARED=-sh
 | `eval/run_eval.py` | FEVER / LIAR / FakeNewsNet harness with the label mapping from §I-B and leakage control. |
 | `web/` | The UI: Verify, What we learned (survey), Existing vs RealFact, Methodology, Parallel benchmark, Live corpus, Evaluation. |
 
+## FEVER demo mode
+
+The Verify tab has an **Evidence corpus** switch. **FEVER demo (Wikipedia 2017)** verifies a fixed list of FEVER dev claims against a 25,324-page subset of the FEVER Wikipedia dump: the gold pages for the claims, 2,723 pages cited by other FEVER claims (hard distractors), and 22,476 random pages. Only the listed claims can be verified, and each result is shown next to FEVER's gold label and annotated evidence.
+
+```bash
+# one-time: download the FEVER data (4 MB + 1.7 GB) into data/datasets/fever/
+curl -L -o data/datasets/fever/shared_task_dev.jsonl https://fever.ai/download/fever/shared_task_dev.jsonl
+curl -L -o data/datasets/fever/wiki-pages.zip https://fever.ai/download/fever/wiki-pages.zip
+.venv/bin/python -m scripts.build_fever_demo          # ~2 minutes: scan the dump, embed on the Apple GPU
+.venv/bin/python -m eval.run_eval --dataset fever-demo
+```
+
+- **Claim selection:** 60 SUPPORTS, 59 REFUTES and 60 NOT ENOUGH INFO claims. SUPPORTS and REFUTES claims are kept only when their evidence is one sentence within the first 4 sentences of one page, because the index embeds each page's lead.
+- **NLI model:** the FEVER corpus uses `MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli`, which is trained on FEVER's train split; the demo claims come from dev. Live news keeps the smaller `nli-deberta-v3-xsmall`.
+- **Results on the 179 demo claims:** 74.3% accuracy (macro F1 0.741), versus 58.7% with the xsmall model. The gold page was retrieved within the top cluster for 89.1% of verifiable claims, and within the top 5 for 95.0%.
+- **Scope:** this is a demo slice selected to suit a lead-only index, so it is not comparable to published full-FEVER scores.
+
 ## Correctness and performance work
 
 - `tests/test_correctness.py` holds 12 checks: engine vs NumPy across 45 configurations, bit-exactness vs the serial build, exact ties, edge cases, the leakage mask, batched == single, per-thread row accounting, the aggregation equations, clustering, exact Wilcoxon vs enumeration, ingestion and label maps. Run it with `.venv/bin/python -m tests.test_correctness` or the **Run self-test** button on the Benchmark tab.

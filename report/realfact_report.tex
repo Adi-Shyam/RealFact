@@ -105,7 +105,9 @@ roofline. A controlled syndication test shows that
 naive duplicate counting and plain top-$K$ retrieval flip a contested claim to \emph{Contradicted}, while
 RealFact's verdict correctly stays \emph{Conflicting Evidence}. We map each design decision to the lessons of
 Guo et~al.'s survey, compare RealFact with existing approaches, and report a LIAR evaluation that exposes
-the dependence of accuracy on evidence-corpus coverage.
+the dependence of accuracy on evidence-corpus coverage. On a curated FEVER subset (179 dev claims against
+25,324 Wikipedia pages) with the evidence pool matched to the claims, RealFact reaches 74.3\% label accuracy, and the gold
+page is the top retrieved cluster for 89\% of verifiable claims.
 \end{abstract}
 
 \tableofcontents
@@ -786,6 +788,42 @@ expected control, since LIAR contains no syndicated copies. A meaningful accurac
 matched to the dataset: FakeNewsNet's articles, or the FEVER Wikipedia dump (about 5.4M documents) indexed into
 the same engine.
 
+\subsection{FEVER demo subset}
+\label{sec:feverdemo}
+The LIAR run showed that accuracy cannot be measured when the evidence pool does not cover the claims. To test reasoning
+with a matched pool, we built a demo corpus from the official FEVER data (\texttt{scripts/build\_fever\_demo.py}):
+\begin{itemize}
+  \item \textbf{Claims:} 179 FEVER dev claims, 60 SUPPORTS, 59 REFUTES and 60 NOT ENOUGH INFO. SUPPORTS and REFUTES claims were
+  kept only when one evidence set is a single sentence among the first four sentences of one page, because the index embeds
+  each page's lead (first five sentences). NOT ENOUGH INFO claims were sampled at random.
+  \item \textbf{Pages:} 25,324 pages of the 2017 dump: the 125 gold pages, 2,723 pages cited as evidence by other dev claims
+  (topical hard distractors), and 22,476 random pages. Embedding them took 89\,s on the Apple GPU.
+  \item \textbf{NLI:} \texttt{DeBERTa-v3-base-mnli-fever-anli}, trained on FEVER's train split, so testing on dev claims is fair.
+  The live-news path keeps the smaller xsmall model. The relevance floor stays at the news-calibrated 0.68 and was not
+  tuned on these claims.
+\end{itemize}
+
+\begin{table}[H]
+\centering\small
+\caption{FEVER demo subset: 179 claims, 25,324 pages. Recall@K counts verifiable claims whose gold page is in the top-$K$ kept clusters.}
+\label{tab:feverdemo}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{NLI model} & \textbf{Accuracy} & \textbf{Macro F1} & \textbf{ms / claim} & \textbf{Recall@1 / @5}\\
+\midrule
+nli-deberta-v3-xsmall & 58.7\% & 0.585 & 65 & 89.1\% / 95.0\%\\
+\rowcolor{novelsoft}DeBERTa-v3-base-mnli-fever-anli & \textbf{74.3\%} & \textbf{0.741} & 167 & 89.1\% / 95.0\%\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+With the FEVER-trained model, per-class F1 is 0.807 (SUPPORTS), 0.768 (REFUTES) and 0.649 (NOT ENOUGH INFO). The remaining
+errors are concentrated in NOT ENOUGH INFO claims: 15 of 60 were labelled Contradicted, because these claims name real
+entities whose pages are retrieved and partly conflict with the claim. Retrieval is not the bottleneck: the gold page is
+the top cluster for 89.1\% of verifiable claims. As expected, all four aggregation rules gave identical results, since
+Wikipedia contains no syndicated copies. This subset was selected to suit a lead-only index, so the numbers show what the
+pipeline does when evidence is available; they are not comparable to published full-FEVER scores.
+
 \subsection{End-to-end latency}
 For a typical claim on the live corpus (\emph{``Ukraine says at least 13 killed in Russian attack on train
 station''}), stage times were: claim embedding 8.1\,ms, OpenMP scan 0.2\,ms, clustering 0.1\,ms, NLI on the
@@ -1009,8 +1047,9 @@ Table~\ref{tab:lb}) and it avoids static's 11\% idle time on the heterogeneous c
   \item \textbf{Heterogeneous cores and no pinning.} Results on Apple Silicon reflect the OS scheduler's placement
   across performance and efficiency cores. They are not directly comparable to pinned results on a homogeneous
   x86 server.
-  \item \textbf{Evaluation coverage.} Only LIAR has been run, against a corpus that does not cover its time span.
-  FEVER and FakeNewsNet results remain future work.
+  \item \textbf{Evaluation coverage.} LIAR was run against a corpus that does not cover its time span. FEVER was run only
+  on a curated 179-claim subset selected for lead-only evidence (Section~\ref{sec:feverdemo}). Full FEVER and FakeNewsNet
+  remain future work.
 \end{enumerate}
 
 % ================================================================== 11
@@ -1031,8 +1070,9 @@ roof (5$\times$ throughput). Throughout, a 12-check suite kept every optimisatio
 
 \paragraph{Future work.}
 \begin{itemize}
-  \item Index the FEVER Wikipedia dump and FakeNewsNet articles to obtain accuracy and Recall@K comparable to
-  published baselines, and run the $\lambda$ and $\tau$ sensitivity sweeps on hand-labelled syndication clusters.
+  \item Index the full FEVER Wikipedia dump (about 9\,h of GPU embedding and 8.3\,GB of vectors on this machine, with
+  memory-mapped loading) and FakeNewsNet articles to obtain accuracy comparable to published baselines, and run the
+  $\lambda$ and $\tau$ sensitivity sweeps on hand-labelled syndication clusters.
   \item Runs on a pinned, homogeneous multi-socket x86 server to separate core heterogeneity and NUMA effects from
   scheduling effects.
   \item float16 or int8 embeddings, which halve or quarter the bytes per row and so raise the bandwidth-bound
@@ -1071,6 +1111,8 @@ make                                   # build OpenMP + serial engine libraries
 .venv/bin/python -m backend.bench --sizes 10000 50000 100000 500000
 .venv/bin/python -m eval.run_eval --dataset liar \
     --path data/datasets/liar/test.tsv --limit 2000
+.venv/bin/python -m scripts.build_fever_demo   # FEVER demo corpus
+.venv/bin/python -m eval.run_eval --dataset fever-demo
 \end{lstlisting}
 Benchmark results are written to \texttt{data/bench\_last.json} (from the UI) or \texttt{data/bench\_cli.json}
 (from the command line). Evaluation results go to \texttt{data/eval\_results.json}. The numbers in this report

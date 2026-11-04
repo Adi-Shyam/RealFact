@@ -32,12 +32,35 @@
 <!-- ======================================================= VERIFY -->
 <section class="tab active" id="tab-verify">
   <div class="card">
-    <div class="eyebrow">Input claim</div>
-    <div class="claim-box" style="margin-top:8px">
-      <textarea id="claim" rows="2" placeholder="Type a news claim, e.g. “Russian strike on a Ukrainian train station killed at least 13 people”"></textarea>
-      <button class="btn primary" id="verify-btn">Verify</button>
+    <div class="verify-head">
+      <div class="eyebrow">Evidence corpus</div>
+      <div class="seg" role="tablist" aria-label="Evidence corpus">
+        <button id="corpus-live" class="active" role="tab" aria-selected="true">Live news</button>
+        <button id="corpus-fever" role="tab" aria-selected="false">FEVER demo (Wikipedia 2017)</button>
+      </div>
     </div>
-    <div class="chips" id="examples"></div>
+    <div id="live-input">
+      <div class="eyebrow" style="margin-top:14px">Input claim</div>
+      <div class="claim-box" style="margin-top:8px">
+        <textarea id="claim" rows="2" placeholder="Type a news claim, e.g. “Russian strike on a Ukrainian train station killed at least 13 people”"></textarea>
+        <button class="btn primary" id="verify-btn">Verify</button>
+      </div>
+      <div class="chips" id="examples"></div>
+    </div>
+    <div id="fever-input" hidden>
+      <p class="small muted" id="fever-note" style="margin:12px 0 10px"></p>
+      <div class="fever-tools">
+        <input type="text" id="fever-search" placeholder="Search claims" aria-label="Search demo claims">
+        <div class="seg small-seg" id="fever-filter" role="tablist" aria-label="Filter by gold label">
+          <button data-f="all" class="active">All</button>
+          <button data-f="SUPPORTS">Supports</button>
+          <button data-f="REFUTES">Refutes</button>
+          <button data-f="NOT ENOUGH INFO">Not enough info</button>
+        </div>
+        <button class="btn sm" id="fever-random">Random claim</button>
+      </div>
+      <div class="fever-list" id="fever-list" role="listbox" aria-label="Demo claims"></div>
+    </div>
     <details class="params">
       <summary>Pipeline parameters (M, K, τ, λ, θ, δ, threads, schedule)</summary>
       <div class="param-grid" id="param-grid"></div>

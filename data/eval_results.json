@@ -197,5 +197,244 @@
     }
    }
   }
+ },
+ "fever-demo": {
+  "dataset": "fever-demo",
+  "n": 179,
+  "corpus_size": 25324,
+  "finished_at": "2026-11-04 18:10:35",
+  "p95_latency_ms": 469.1182252999993,
+  "median_latency_ms": 94.98158299999915,
+  "recall_at_k": {
+   "@1": 0.8907563025210085,
+   "@5": 0.9495798319327731,
+   "@10": 0.9495798319327731
+  },
+  "params": {
+   "M": 10000,
+   "K": 10,
+   "tau": 0.9,
+   "lam": 0.5,
+   "theta": 0.6,
+   "delta": 0.25,
+   "min_rel": 0.68,
+   "threads": 0,
+   "schedule": "guided",
+   "nli_model": "MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli"
+  },
+  "modes": {
+   "independence_log": {
+    "accuracy": 0.7430167597765364,
+    "macro_f1": 0.7412818320310581,
+    "per_class": {
+     "SUPPORT": {
+      "precision": 0.8135593220338984,
+      "recall": 0.8,
+      "f1": 0.8067226890756303,
+      "support": 60
+     },
+     "CONTRADICT": {
+      "precision": 0.7272727272727273,
+      "recall": 0.8135593220338984,
+      "f1": 0.768,
+      "support": 59
+     },
+     "NEUTRAL": {
+      "precision": 0.6851851851851852,
+      "recall": 0.6166666666666667,
+      "f1": 0.6491228070175439,
+      "support": 60
+     }
+    },
+    "confusion": {
+     "SUPPORT": {
+      "SUPPORT": 48,
+      "NEUTRAL": 9,
+      "CONTRADICT": 3
+     },
+     "CONTRADICT": {
+      "CONTRADICT": 48,
+      "SUPPORT": 3,
+      "NEUTRAL": 8
+     },
+     "NEUTRAL": {
+      "NEUTRAL": 37,
+      "CONTRADICT": 15,
+      "SUPPORT": 8
+     }
+    },
+    "verdict_counts": {
+     "Unverified": 42,
+     "Supported": 59,
+     "Contradicted": 66,
+     "Conflicting Evidence": 12
+    },
+    "nei_band_verdicts": {
+     "Unverified": 34,
+     "Contradicted": 15,
+     "Supported": 8,
+     "Conflicting Evidence": 3
+    }
+   },
+   "one_vote": {
+    "accuracy": 0.7430167597765364,
+    "macro_f1": 0.7412818320310581,
+    "per_class": {
+     "SUPPORT": {
+      "precision": 0.8135593220338984,
+      "recall": 0.8,
+      "f1": 0.8067226890756303,
+      "support": 60
+     },
+     "CONTRADICT": {
+      "precision": 0.7272727272727273,
+      "recall": 0.8135593220338984,
+      "f1": 0.768,
+      "support": 59
+     },
+     "NEUTRAL": {
+      "precision": 0.6851851851851852,
+      "recall": 0.6166666666666667,
+      "f1": 0.6491228070175439,
+      "support": 60
+     }
+    },
+    "confusion": {
+     "SUPPORT": {
+      "SUPPORT": 48,
+      "NEUTRAL": 9,
+      "CONTRADICT": 3
+     },
+     "CONTRADICT": {
+      "CONTRADICT": 48,
+      "SUPPORT": 3,
+      "NEUTRAL": 8
+     },
+     "NEUTRAL": {
+      "NEUTRAL": 37,
+      "CONTRADICT": 15,
+      "SUPPORT": 8
+     }
+    },
+    "verdict_counts": {
+     "Unverified": 42,
+     "Supported": 59,
+     "Contradicted": 66,
+     "Conflicting Evidence": 12
+    },
+    "nei_band_verdicts": {
+     "Unverified": 34,
+     "Contradicted": 15,
+     "Supported": 8,
+     "Conflicting Evidence": 3
+    }
+   },
+   "naive_count": {
+    "accuracy": 0.7430167597765364,
+    "macro_f1": 0.7412818320310581,
+    "per_class": {
+     "SUPPORT": {
+      "precision": 0.8135593220338984,
+      "recall": 0.8,
+      "f1": 0.8067226890756303,
+      "support": 60
+     },
+     "CONTRADICT": {
+      "precision": 0.7272727272727273,
+      "recall": 0.8135593220338984,
+      "f1": 0.768,
+      "support": 59
+     },
+     "NEUTRAL": {
+      "precision": 0.6851851851851852,
+      "recall": 0.6166666666666667,
+      "f1": 0.6491228070175439,
+      "support": 60
+     }
+    },
+    "confusion": {
+     "SUPPORT": {
+      "SUPPORT": 48,
+      "NEUTRAL": 9,
+      "CONTRADICT": 3
+     },
+     "CONTRADICT": {
+      "CONTRADICT": 48,
+      "SUPPORT": 3,
+      "NEUTRAL": 8
+     },
+     "NEUTRAL": {
+      "NEUTRAL": 37,
+      "CONTRADICT": 15,
+      "SUPPORT": 8
+     }
+    },
+    "verdict_counts": {
+     "Unverified": 42,
+     "Supported": 59,
+     "Contradicted": 66,
+     "Conflicting Evidence": 12
+    },
+    "nei_band_verdicts": {
+     "Unverified": 34,
+     "Contradicted": 15,
+     "Supported": 8,
+     "Conflicting Evidence": 3
+    }
+   },
+   "filter_off": {
+    "accuracy": 0.7430167597765364,
+    "macro_f1": 0.7412818320310581,
+    "per_class": {
+     "SUPPORT": {
+      "precision": 0.8135593220338984,
+      "recall": 0.8,
+      "f1": 0.8067226890756303,
+      "support": 60
+     },
+     "CONTRADICT": {
+      "precision": 0.7272727272727273,
+      "recall": 0.8135593220338984,
+      "f1": 0.768,
+      "support": 59
+     },
+     "NEUTRAL": {
+      "precision": 0.6851851851851852,
+      "recall": 0.6166666666666667,
+      "f1": 0.6491228070175439,
+      "support": 60
+     }
+    },
+    "confusion": {
+     "SUPPORT": {
+      "SUPPORT": 48,
+      "NEUTRAL": 9,
+      "CONTRADICT": 3
+     },
+     "CONTRADICT": {
+      "CONTRADICT": 48,
+      "SUPPORT": 3,
+      "NEUTRAL": 8
+     },
+     "NEUTRAL": {
+      "NEUTRAL": 37,
+      "CONTRADICT": 15,
+      "SUPPORT": 8
+     }
+    },
+    "verdict_counts": {
+     "Unverified": 42,
+     "Supported": 59,
+     "Contradicted": 66,
+     "Conflicting Evidence": 12
+    },
+    "nei_band_verdicts": {
+     "Unverified": 34,
+     "Contradicted": 15,
+     "Supported": 8,
+     "Conflicting Evidence": 3
+    }
+   }
+  }
  }
 }

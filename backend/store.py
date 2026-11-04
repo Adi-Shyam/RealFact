@@ -32,18 +32,19 @@ CREATE TABLE IF NOT EXISTS ingest_log (
 
 
 class Store:
-    def __init__(self):
-        os.makedirs(DATA_DIR, exist_ok=True)
+    def __init__(self, db_path=DB_PATH, emb_path=EMB_PATH):
+        self.db_path, self.emb_path = db_path, emb_path
+        os.makedirs(os.path.dirname(db_path) or DATA_DIR, exist_ok=True)
         self.lock = threading.RLock()
-        self.db = sqlite3.connect(DB_PATH, check_same_thread=False)
+        self.db = sqlite3.connect(db_path, check_same_thread=False)
         self.db.row_factory = sqlite3.Row
         self.db.executescript(SCHEMA)
         self._load_matrix()
 
     def _load_matrix(self):
         n_rows = self.db.execute("SELECT COUNT(*) FROM articles").fetchone()[0]
-        if os.path.exists(EMB_PATH):
-            flat = np.fromfile(EMB_PATH, dtype=np.float32)
+        if os.path.exists(self.emb_path):
+            flat = np.fromfile(self.emb_path, dtype=np.float32)
             emb = flat.reshape(-1, DIM)
         else:
             emb = np.zeros((0, DIM), dtype=np.float32)
@@ -52,7 +53,7 @@ class Store:
             self.db.execute("DELETE FROM articles WHERE id >= ?", (n,))
             self.db.commit()
             emb = emb[:n]
-            emb.tofile(EMB_PATH)
+            emb.tofile(self.emb_path)
         self.emb = np.ascontiguousarray(emb)
 
     @property
@@ -77,7 +78,7 @@ class Store:
                          r.get("published_at"), r["fetched_at"], r.get("origin", "live")),
                     )
             vectors = np.ascontiguousarray(vectors, dtype=np.float32)
-            with open(EMB_PATH, "ab") as f:
+            with open(self.emb_path, "ab") as f:
                 vectors.tofile(f)
             self.emb = np.ascontiguousarray(np.vstack([self.emb, vectors]))
             return len(rows)

@@ -98,10 +98,11 @@ async function runVerify(extra = {}) {
   const btn = $("#verify-btn");
   btn.disabled = true;
   btn.innerHTML = `<span class="spinner"></span> Verifying`;
+  if (CORPUS === "fever") $("#verify-out").innerHTML = `<div class="card small muted"><span class="spinner"></span> Verifying against the FEVER Wikipedia subset…</div>`;
   LAST_CLAIM = claim;
   LAST_PARAMS = { ...readParams(), ...extra };
   try {
-    const r = await api("/api/verify", { method: "POST", body: JSON.stringify({ claim, params: LAST_PARAMS }) });
+    const r = await api("/api/verify", { method: "POST", body: JSON.stringify({ claim, params: LAST_PARAMS, corpus: CORPUS }) });
     renderVerify(r);
   } catch (e) {
     $("#verify-out").innerHTML = `<div class="err">${esc(e.message)}</div>`;
@@ -111,6 +112,82 @@ async function runVerify(extra = {}) {
   }
 }
 $("#verify-btn").onclick = () => runVerify();
+
+/* ------------------------------------------------------------------ corpus switch + FEVER demo */
+let CORPUS = "live";
+let FEVER = null;
+let FEVER_FILTER = "all";
+
+function corpusDefaults(c) {
+  const base = STATUS ? STATUS.defaults : {};
+  return { ...base, ...((STATUS && STATUS.corpus_defaults && STATUS.corpus_defaults[c]) || {}) };
+}
+
+async function setCorpus(c) {
+  if (c === "fever" && !(STATUS && STATUS.fever && STATUS.fever.available)) {
+    $("#verify-out").innerHTML = `<div class="err">The FEVER demo corpus isn't built yet. Run <code>.venv/bin/python -m scripts.build_fever_demo</code> and reload.</div>`;
+    return;
+  }
+  CORPUS = c;
+  for (const [id, on] of [["#corpus-live", c === "live"], ["#corpus-fever", c === "fever"]]) {
+    $(id).classList.toggle("active", on);
+    $(id).setAttribute("aria-selected", on);
+  }
+  $("#live-input").hidden = c !== "live";
+  $("#fever-input").hidden = c !== "fever";
+  buildParams(corpusDefaults(c));
+  $("#verify-out").innerHTML = "";
+  $("#claim").value = "";
+  if (c === "fever") {
+    if (!FEVER) FEVER = await api("/api/fever/claims");
+    const m = FEVER.meta;
+    $("#fever-note").innerHTML = `Claims and pages come from the FEVER benchmark (Thorne et al., 2018). The evidence pool is <b>${m.pages.toLocaleString()} Wikipedia pages</b> from the 2017 dump: the gold pages for these ${m.claims} claims, ${m.hard_distractors.toLocaleString()} pages cited by other FEVER claims as hard distractors, and ${m.random_pages.toLocaleString()} random pages. Claims were chosen so their evidence sits in a page's first ${m.gold_max_line + 1} sentences, which a lead-only index can reach. Pick a claim to verify it; the result shows FEVER's gold answer next to RealFact's.`;
+    renderFeverList();
+  }
+}
+$("#corpus-live").onclick = () => setCorpus("live");
+$("#corpus-fever").onclick = () => setCorpus("fever");
+
+const lblClass = (l) => "lbl lbl-" + l.split(" ")[0];
+const lblName = (l) => ({ SUPPORTS: "Supports", REFUTES: "Refutes", "NOT ENOUGH INFO": "Not enough info" }[l] || l);
+
+function renderFeverList() {
+  const q = $("#fever-search").value.trim().toLowerCase();
+  const items = FEVER.claims.filter((c) => (FEVER_FILTER === "all" || c.label === FEVER_FILTER) && (!q || c.claim.toLowerCase().includes(q)));
+  $("#fever-list").innerHTML = items.length
+    ? items.map((c) => `<button class="fever-item ${c.claim === LAST_CLAIM && CORPUS === "fever" ? "current" : ""}" role="option" data-claim="${esc(c.claim)}"><span class="txt">${esc(c.claim)}</span><span class="${lblClass(c.label)}" title="FEVER gold label">${lblName(c.label)}</span></button>`).join("")
+    : `<div class="empty small">No claims match.</div>`;
+  $$("#fever-list .fever-item").forEach((b) => (b.onclick = () => pickFever(b.dataset.claim)));
+}
+function pickFever(claim) {
+  $("#claim").value = claim;
+  runVerify().then(renderFeverList);
+}
+$("#fever-search").addEventListener("input", () => FEVER && renderFeverList());
+$$("#fever-filter button").forEach((b) => (b.onclick = () => {
+  FEVER_FILTER = b.dataset.f;
+  $$("#fever-filter button").forEach((x) => x.classList.toggle("active", x === b));
+  renderFeverList();
+}));
+$("#fever-random").onclick = () => {
+  const pool = FEVER.claims.filter((c) => FEVER_FILTER === "all" || c.label === FEVER_FILTER);
+  pickFever(pool[Math.floor(Math.random() * pool.length)].claim);
+};
+
+function feverPanel(f) {
+  const rank = f.gold_retrieved_rank;
+  return `<div class="gold" style="margin-bottom:16px">
+    <div class="gold-row">
+      <div><div class="eyebrow">FEVER gold label</div><div style="margin-top:6px"><span class="${lblClass(f.label)}" style="font-size:12px">${lblName(f.label)}</span></div></div>
+      <div><div class="eyebrow">RealFact answer, mapped</div><div style="margin-top:6px"><span class="${lblClass(f.system_label)}" style="font-size:12px">${lblName(f.system_label)}</span></div></div>
+      <div><div class="eyebrow">Match</div><div style="margin-top:4px" class="${f.correct ? "yes" : "no"}">${f.correct ? "✓ agrees with FEVER" : "✗ differs from FEVER"}</div></div>
+      ${f.gold_pages.length ? `<div><div class="eyebrow">Gold page retrieved?</div><div style="margin-top:4px" class="${rank ? "yes" : "no"}">${rank ? `✓ cluster #${rank}` : "✗ not in top-K"}</div></div>` : ""}
+    </div>
+    ${f.evidence.length ? `<div class="small" style="margin-top:12px"><b>FEVER's annotated evidence</b><ul>${f.evidence.map((e) => `<li><i>${esc(e.page)}</i>, sentence ${e.line}: ${esc(e.sentence)}</li>`).join("")}</ul></div>`
+      : `<p class="small muted" style="margin:10px 0 0">FEVER marks this claim as having no supporting or refuting evidence in Wikipedia, so the correct answer is <b>Unverified</b>.</p>`}
+    <p class="tiny muted" style="margin:10px 0 0">Mapping: Supported → SUPPORTS, Contradicted → REFUTES, Unverified and Conflicting Evidence → NOT ENOUGH INFO (methodology §I-B).</p>
+  </div>`;
+}
 $("#claim").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); runVerify(); } });
 
 function probsBar(pr) {
@@ -133,6 +210,7 @@ function renderVerify(r) {
   ];
 
   $("#verify-out").innerHTML = `
+  ${r.fever ? feverPanel(r.fever) : ""}
   ${sim ? `<div class="callout warn" style="margin-bottom:16px"><b>Syndication stress test active:</b> article #${sim.article_id} has been republished ×${sim.copies} under simulated outlets (<code>wire-copy-N.simulated</code>), for this query only. Nothing is written to the corpus. Compare the verdict table below. <button class="btn sm" id="clear-sim" style="margin-left:8px">Clear simulation</button></div>` : ""}
   <div class="verdict-wrap">
     <div class="verdict ${vclass(r.verdict)}">
@@ -162,7 +240,7 @@ function renderVerify(r) {
           <span class="${par.ids_match_serial ? "yes" : "no"}">${par.ids_match_serial ? "✓ IDs identical to serial build" : "✗ IDs differ from serial"}</span>
           <span class="muted">Retrieve-then-truncate would have kept only <b>${rw.truncate_then_cluster_independent}</b> independent stories in K = ${p.K} (${rw.truncate_then_cluster_slots_wasted} slots wasted)</span>
         </div>
-        ${rw.corpus_size < 50000 ? `<p class="tiny muted" style="margin:8px 0 0">With a live corpus this small, OpenMP start-up costs as much as the scan itself. See the Parallel benchmark tab for 10K–500K corpora.</p>` : ""}
+        ${rw.corpus_size < 50000 ? `<p class="tiny muted" style="margin:8px 0 0">With a corpus this small (${rw.corpus_size.toLocaleString()} ${r.corpus === "fever" ? "pages" : "articles"}), OpenMP start-up costs about as much as the scan itself. See the Parallel benchmark tab for 10K–500K corpora.</p>` : ""}
       </div>
     </div>
   </div>
@@ -591,12 +669,14 @@ async function loadEval() {
   const names = { independence_log: "RealFact log-weighted", one_vote: "λ = 0", naive_count: "naive counting", filter_off: "filter off" };
   $("#eval-out").innerHTML = Object.values(r).map((d) => `
     <div class="card tbl-wrap">
-      <h3>${esc(d.dataset.toUpperCase())}: ${d.n} claims · corpus ${d.corpus_size.toLocaleString()} · ${esc(d.finished_at)}</h3>
-      <p class="small muted">median latency ${fmt(d.median_latency_ms, 1)} ms · p95 ${fmt(d.p95_latency_ms, 1)} ms · Recall@K: ${esc(d.recall_at_k)}</p>
+      <h3>${d.dataset === "fever-demo" ? "FEVER demo subset" : esc(d.dataset.toUpperCase())}: ${d.n} claims · corpus ${d.corpus_size.toLocaleString()} ${d.dataset === "fever-demo" ? "Wikipedia pages" : "articles"} · ${esc(d.finished_at)}</h3>
+      <p class="small muted">median latency ${fmt(d.median_latency_ms, 1)} ms · p95 ${fmt(d.p95_latency_ms, 1)} ms · Recall@K (gold page in kept clusters): ${typeof d.recall_at_k === "object" ? Object.entries(d.recall_at_k).map(([k, v]) => `${k} ${fmt(v * 100, 1)}%`).join(" · ") : esc(d.recall_at_k)}${d.params && d.params.nli_model ? ` · NLI: <code>${esc(d.params.nli_model)}</code>` : ""}</p>
+      ${d.dataset === "fever-demo" ? `<p class="small" style="margin:0 0 8px">Curated FEVER dev claims whose evidence is in the first sentences of one page, verified against a 25K-page Wikipedia subset. This is a demo slice, not the full FEVER benchmark, so it is not comparable to published FEVER scores.</p>` : ""}
       ${(() => { const pc = d.modes.independence_log.per_class; const maj = Object.entries(pc).sort((a, b) => b[1].support - a[1].support)[0]; const unv = (d.modes.independence_log.verdict_counts.Unverified || 0) / d.n;
         return `<p class="small">Majority-class baseline (always ${maj[0]}): <b>${fmt((maj[1].support / d.n) * 100, 1)}%</b> · claims answered Unverified: <b>${fmt(unv * 100, 1)}%</b>${unv > 0.8 ? ". Most claims found no evidence in the current news corpus, so accuracy here measures corpus coverage, not reasoning quality." : ""}</p>`; })()}
       <table><thead><tr><th>Mode</th><th class="num">Accuracy</th><th class="num">Macro F1</th><th class="num">F1 SUP</th><th class="num">F1 CON</th><th class="num">F1 NEU</th><th>Verdict counts</th></tr></thead>
       <tbody>${modes.map((m) => { const x = d.modes[m]; return `<tr class="${m === "independence_log" ? "ours" : ""}"><td>${names[m]}</td><td class="num">${fmt(x.accuracy * 100, 1)}%</td><td class="num">${fmt(x.macro_f1, 3)}</td><td class="num">${fmt(x.per_class.SUPPORT.f1, 3)}</td><td class="num">${fmt(x.per_class.CONTRADICT.f1, 3)}</td><td class="num">${fmt(x.per_class.NEUTRAL.f1, 3)}</td><td class="tiny">${Object.entries(x.verdict_counts).map(([k, v]) => `${k}: ${v}`).join(" · ")}</td></tr>`; }).join("")}</tbody></table>
+      ${d.modes.independence_log.nei_band_verdicts ? `<p class="small" style="margin:8px 0 0">Verdicts on NOT ENOUGH INFO claims: ${Object.entries(d.modes.independence_log.nei_band_verdicts).map(([k, v]) => `${k}: ${v}`).join(" · ")}</p>` : ""}
       ${d.modes.independence_log.middle_band_verdicts ? `<p class="small" style="margin:8px 0 0">LIAR middle band (half-true / barely-true) verdicts: ${Object.entries(d.modes.independence_log.middle_band_verdicts).map(([k, v]) => `${k}: ${v}`).join(" · ")} · two-sided band accuracy ${fmt(d.modes.independence_log.two_sided_band * 100, 1)}%</p>` : ""}
       ${d.modes.independence_log.merged_not_supported ? `<p class="small" style="margin:8px 0 0">Merged not-supported accuracy: ${fmt(d.modes.independence_log.merged_not_supported.accuracy * 100, 1)}%</p>` : ""}
     </div>`).join("") + `<div style="margin-top:16px">${howto}</div>`;

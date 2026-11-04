@@ -247,3 +247,28 @@ ul.clean li { margin: 4px 0; }
 .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
 .diagram svg { width: 100%; height: auto; }
 .diagram text { font-family: var(--sans); }
+
+/* ---------- corpus switch + FEVER demo picker ---------- */
+.verify-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: space-between; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 9px; padding: 3px; background: var(--surface-2); gap: 2px; flex-wrap: wrap; }
+.seg button { border: 0; background: none; color: var(--ink-2); font: 500 13px var(--sans); padding: 6px 12px; border-radius: 6px; cursor: pointer; }
+.seg button:hover { color: var(--ink); }
+.seg button.active { background: var(--surface); color: var(--accent); box-shadow: var(--shadow); }
+.small-seg button { font-size: 12px; padding: 4px 9px; }
+.fever-tools { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+.fever-tools input { flex: 1 1 200px; width: auto; }
+.fever-list { max-height: 300px; overflow-y: auto; border: 1px solid var(--line); border-radius: 10px; }
+.fever-item { display: flex; gap: 10px; align-items: flex-start; width: 100%; text-align: left; background: none; border: 0; border-bottom: 1px solid var(--line); padding: 9px 12px; cursor: pointer; color: var(--ink); font: 14px/1.4 var(--sans); }
+.fever-item:last-child { border-bottom: 0; }
+.fever-item:hover, .fever-item:focus-visible { background: var(--accent-soft); outline: none; }
+.fever-item.current { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent); }
+.fever-item .txt { flex: 1; min-width: 0; }
+.lbl { flex: 0 0 auto; font: 600 10.5px var(--sans); letter-spacing: .03em; padding: 2px 7px; border-radius: 5px; white-space: nowrap; }
+.lbl-SUPPORTS { background: var(--sup-soft); color: var(--sup); }
+.lbl-REFUTES { background: var(--con-soft); color: var(--con); }
+.lbl-NOT { background: var(--unv-soft); color: var(--unv); }
+.gold { border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; background: var(--surface); }
+.gold-row { display: flex; gap: 18px; flex-wrap: wrap; align-items: center; }
+.gold-row > div { min-width: 0; }
+.gold ul { margin: 8px 0 0; padding-left: 18px; font-size: 13.5px; }
+.gold li { margin: 4px 0; }

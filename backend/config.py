@@ -6,6 +6,13 @@ DATA_DIR = os.path.join(ROOT, "data")
 DB_PATH = os.path.join(DATA_DIR, "corpus.sqlite")
 EMB_PATH = os.path.join(DATA_DIR, "embeddings.f32")
 
+# FEVER demo corpus: a fixed subset of the FEVER 2017 Wikipedia dump plus curated FEVER dev claims
+# (built by scripts/build_fever_demo.py).
+FEVER_DIR = os.path.join(DATA_DIR, "fever")
+FEVER_DB_PATH = os.path.join(FEVER_DIR, "corpus.sqlite")
+FEVER_EMB_PATH = os.path.join(FEVER_DIR, "embeddings.f32")
+FEVER_CLAIMS_PATH = os.path.join(FEVER_DIR, "demo_claims.json")
+
 EMBED_MODEL = "BAAI/bge-small-en-v1.5"          # d = 384, 512-token limit (§I-C)
 NLI_MODEL = "cross-encoder/nli-deberta-v3-xsmall"  # SUPPORT / CONTRADICT / NEUTRAL head
 BGE_QUERY_PREFIX = "Represent this sentence for searching relevant passages: "
@@ -21,6 +28,16 @@ DEFAULTS = {
     "min_rel": 0.68,   # relevance floor: candidates below this cosine are not evidence
     "threads": 0,      # 0 -> auto: grain-size and bandwidth-aware (pipeline.auto_threads)
     "schedule": "guided",  # measured best on heterogeneous P/E cores (Parallel benchmark tab)
+    "nli_model": NLI_MODEL,
+}
+
+# Per-corpus overrides of DEFAULTS. Similarity scales differ between news leads and Wikipedia leads,
+# so the relevance floor is calibrated per corpus (see scripts/build_fever_demo.py and the eval).
+CORPUS_DEFAULTS = {
+    "live": {},
+    # FEVER-trained NLI (trained on FEVER's train split; the demo claims come from dev). On the 179 demo
+    # claims it scores 74.3% vs 58.7% for the xsmall model, at 167 vs 65 ms per claim.
+    "fever": {"min_rel": 0.68, "nli_model": "MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli"},
 }
 
 # Permitted public RSS feeds (headline + lead only; we never scrape article pages).
