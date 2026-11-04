@@ -96,4 +96,4 @@ The retrieval scan is memory-bandwidth bound: each 1.5 KB row is read once for o
 
 ## Report
 
-`report/realfact_report.pdf` is built from `report/realfact_report.tex` with `make report`. This uses the bundled Tectonic engine in `third_party/tectonic`, which downloads LaTeX packages on its first run.
+`report/realfact_report.pdf` (IEEE conference format, `IEEEtran`, 10 pages) is built from `report/realfact_report.tex` with `make report`. UI screenshots are in `report/figures/`; diagrams and plots are drawn in TikZ/pgfplots from the measured data. The kernel-1 v2 numbers come from `data/bench_v2_report.json`, kernel 2 and 3 from `data/allpairs_last.json`. This uses the bundled Tectonic engine in `third_party/tectonic`, which downloads LaTeX packages on its first run.
